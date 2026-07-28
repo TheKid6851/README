@@ -7,13 +7,15 @@ import TweaksPanel from './components/TweaksPanel'
 
 // The mobile/desktop split is normally driven by a CSS media query on the
 // window width — but an embedded preview (an iframe in a side panel, say)
-// can be narrower than the breakpoint even on a wide monitor. This lets
-// the layout be pinned regardless of the container's actual size:
-// ?view=desktop or ?view=mobile in the URL, or the Tweaks panel toggle.
+// can be narrower than the breakpoint even on a wide monitor, and there's
+// no reliable way to pass a URL query string through every path someone
+// might open the preview from. So: default to desktop outright rather
+// than gambling on a query param or the container's real width. Mobile
+// and Auto are still one tap away in the Tweaks panel.
 function initialViewMode() {
-  if (typeof window === 'undefined') return 'auto'
+  if (typeof window === 'undefined') return 'desktop'
   const param = new URLSearchParams(window.location.search).get('view')
-  return param === 'desktop' || param === 'mobile' ? param : 'auto'
+  return param === 'mobile' || param === 'auto' ? param : 'desktop'
 }
 
 export default function App() {
