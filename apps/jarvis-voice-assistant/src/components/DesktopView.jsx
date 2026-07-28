@@ -3,6 +3,7 @@ import { SCENARIOS, TABS } from '../data/scenarios'
 import { useDraggableOrb } from '../hooks/useDraggableOrb'
 import { useSwipeDismiss } from '../hooks/useSwipeDismiss'
 import { useNodeRepel } from '../hooks/useNodeRepel'
+import CommandInput from './CommandInput'
 
 const CATEGORY_CYCLE = SCENARIOS.map((s) => s.color)
 
@@ -11,10 +12,6 @@ const STATUS_BY_PHASE = {
   listening: { word: 'LISTENING', color: 'var(--status-listening)' },
   processing: { word: 'PROCESSING', color: 'var(--status-processing)' },
   result: { word: 'SPEAKING', color: 'var(--status-speaking)' },
-}
-
-function initials(tag) {
-  return tag.replace(/[^a-zA-Z]/g, '').slice(0, 2).toUpperCase()
 }
 
 function useNodeGraph(count = 34) {
@@ -52,7 +49,7 @@ function useClock() {
 export default function DesktopView({ jarvis }) {
   const {
     phase, activeTab, setActiveTab,
-    counts, resultDisplay, triggerScenario, startListening, dismiss,
+    counts, resultDisplay, triggerScenario, startListening, askText, dismiss,
   } = jarvis
   const { nodes, lines } = useNodeGraph()
   const clock = useClock()
@@ -185,20 +182,7 @@ export default function DesktopView({ jarvis }) {
         )}
       </div>
 
-      <div className="dock">
-        {SCENARIOS.map((s) => (
-          <button
-            key={s.id}
-            className="dock-icon"
-            style={{ color: s.color }}
-            onClick={() => triggerScenario(s.id)}
-            aria-label={s.tag}
-            title={s.tag}
-          >
-            {initials(s.tag)}
-          </button>
-        ))}
-      </div>
+      <CommandInput onSubmit={askText} className="desktop-command-input" />
     </div>
   )
 }

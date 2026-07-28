@@ -218,6 +218,34 @@ export function useJarvis() {
     await speak(display.text, runId)
   }, [pace, speak, wait])
 
+  // Shared by voice and typed input: match what was said/typed against a
+  // skill's keywords, or fall back to a Jarvis-voiced "don't know that one".
+  const respondTo = useCallback((said, runId, source) => {
+    const scenario = matchScenario(said)
+    if (scenario) {
+      presentVoiceResult(runId, { tag: scenario.tag, color: scenario.color, text: scenario.responses[persona] }, scenario.id)
+    } else {
+      const lead = source === 'typed' ? `You asked: "${said}"` : `I heard "${said}"`
+      presentVoiceResult(runId, { ...JARVIS_TAG, text: `${lead} — I don't have a skill for that yet.` }, null)
+    }
+  }, [persona, presentVoiceResult])
+
+  // A typed command skips straight to "thinking about it" — there's nothing
+  // to listen for.
+  const askText = useCallback((text) => {
+    const trimmed = text.trim()
+    if (!trimmed) return
+    clearAllTimeouts()
+    stopSpeech()
+    stopListening()
+    const runId = beginRun()
+    setBriefing(false)
+    setBriefingIndex(-1)
+    setActiveId(null)
+    setResultDisplay(null)
+    respondTo(trimmed, runId, 'typed')
+  }, [respondTo])
+
   // Tapping the orb / J.A.R.V.I.S. ring now genuinely listens for a spoken
   // command via the Web Speech API, matches it against known skills by
   // keyword, and falls back gracefully if the browser can't listen, no
@@ -256,16 +284,7 @@ export function useJarvis() {
     recognition.onresult = (event) => {
       settled = true
       if (cancelledRef.current || runId !== runIdRef.current) return
-      const said = event.results[0][0].transcript
-      const scenario = matchScenario(said)
-      if (scenario) {
-        presentVoiceResult(runId, { tag: scenario.tag, color: scenario.color, text: scenario.responses[persona] }, scenario.id)
-      } else {
-        presentVoiceResult(runId, {
-          ...JARVIS_TAG,
-          text: `I heard "${said}" — I don't have a skill for that yet.`,
-        }, null)
-      }
+      respondTo(event.results[0][0].transcript, runId, 'heard')
     }
 
     recognition.onerror = (event) => {
@@ -294,7 +313,7 @@ export function useJarvis() {
     } catch {
       presentVoiceResult(runId, { ...JARVIS_TAG, text: "I couldn't start listening — try again." }, null)
     }
-  }, [persona, presentVoiceResult])
+  }, [presentVoiceResult, respondTo])
 
   useEffect(() => {
     const id = setTimeout(() => { startBriefing() }, AUTO_START_DELAY_MS)
@@ -327,6 +346,7 @@ export function useJarvis() {
     setTheme,
     triggerScenario,
     startListening,
+    askText,
     startBriefing,
     dismiss,
   }

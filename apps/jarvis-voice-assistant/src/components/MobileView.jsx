@@ -3,6 +3,7 @@ import { SCENARIOS, TABS, BRIEFING_ORDER, CATEGORY_COLORS } from '../data/scenar
 import { useDraggableOrb } from '../hooks/useDraggableOrb'
 import { useSwipeDismiss } from '../hooks/useSwipeDismiss'
 import { useDragTrail } from '../hooks/useDragTrail'
+import CommandInput from './CommandInput'
 
 const TRAIL_COLORS = Object.values(CATEGORY_COLORS)
 
@@ -18,7 +19,7 @@ export default function MobileView({ jarvis }) {
   const {
     phase, activeTab, setActiveTab,
     briefing, briefingIndex, resultDisplay,
-    triggerScenario, startListening, dismiss,
+    triggerScenario, startListening, askText, dismiss,
   } = jarvis
 
   const greeting = greetingCopy()
@@ -82,6 +83,7 @@ export default function MobileView({ jarvis }) {
               </button>
             ))}
           </div>
+          <CommandInput onSubmit={askText} className="mobile-command-input" />
           <div className="suggestion-list">
             {tabScenarios.map((s) => (
               <button
