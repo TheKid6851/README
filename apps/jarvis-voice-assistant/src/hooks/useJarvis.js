@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { SCENARIOS, SCENARIO_MAP, BRIEFING_ORDER, WRAPUP, WRAPUP_ID } from '../data/scenarios'
+import { SCENARIOS, SCENARIO_MAP, BRIEFING_ORDER, WRAPUP } from '../data/scenarios'
 
 // Tweaks: Briefing Pace — multiplier applied to every phase-transition delay.
 const PACE_MULTIPLIER = { quick: 0.8, normal: 1.5, slow: 2.4 }
@@ -11,6 +11,13 @@ const WRAPUP_READ_MS = 1800
 const BRIEFING_GAP_MS = 300
 const AUTO_START_DELAY_MS = 1200
 const SPEECH_SAFETY_CAP_MS = 6000
+
+const JARVIS_TAG = { tag: 'Jarvis', color: 'var(--accent)' }
+
+function matchScenario(said) {
+  const lower = said.toLowerCase()
+  return SCENARIOS.find((s) => s.keywords.some((k) => lower.includes(k)))
+}
 
 // Drives the mobile + desktop views from one shared engine: current phase,
 // which scenario is active, the auto-briefing sequence, trigger counts, and
@@ -26,13 +33,19 @@ export function useJarvis() {
   const [persona, setPersona] = useState('formal')
   const [pace, setPace] = useState('normal')
   const [theme, setTheme] = useState('cyan')
+  // What the result screen shows — {tag, color, text}. Set by scenario runs,
+  // the briefing wrap-up, and live voice matches/fallbacks alike, so views
+  // never have to re-derive it from activeId.
+  const [resultDisplay, setResultDisplay] = useState(null)
 
   // cancelledRef + runIdRef give dismiss() an immediate, hard stop: every
-  // pending timer checks both before it's allowed to touch state or speech,
-  // so a queued briefing step can never fire after the user has backed out.
+  // pending timer (and the speech-recognition callbacks) checks both before
+  // it's allowed to touch state or speech, so a queued step can never fire
+  // after the user has backed out.
   const cancelledRef = useRef(false)
   const runIdRef = useRef(0)
   const timeoutsRef = useRef([])
+  const recognitionRef = useRef(null)
 
   const clearAllTimeouts = () => {
     timeoutsRef.current.forEach(clearTimeout)
@@ -42,6 +55,13 @@ export function useJarvis() {
   const stopSpeech = () => {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       try { window.speechSynthesis.cancel() } catch { /* noop */ }
+    }
+  }
+
+  const stopListening = () => {
+    if (recognitionRef.current) {
+      try { recognitionRef.current.abort() } catch { /* noop */ }
+      recognitionRef.current = null
     }
   }
 
@@ -96,10 +116,12 @@ export function useJarvis() {
     runIdRef.current += 1
     clearAllTimeouts()
     stopSpeech()
+    stopListening()
     setPhase('idle')
     setBriefing(false)
     setBriefingIndex(-1)
     setActiveId(null)
+    setResultDisplay(null)
   }, [])
 
   const runScenario = useCallback(async (scenario, runId) => {
@@ -112,6 +134,7 @@ export function useJarvis() {
 
     const text = scenario.responses[persona]
     setPhase('result')
+    setResultDisplay({ tag: scenario.tag, color: scenario.color, text })
     setCounts((c) => ({ ...c, [scenario.id]: (c[scenario.id] || 0) + 1 }))
     await Promise.all([
       speak(text, runId),
@@ -132,8 +155,9 @@ export function useJarvis() {
       }
       if (cancelledRef.current || runId !== runIdRef.current) return
 
-      setActiveId(WRAPUP_ID)
+      setActiveId(null)
       setPhase('result')
+      setResultDisplay({ tag: 'Briefing', color: 'var(--accent)', text: WRAPUP[persona] })
       await Promise.all([
         speak(WRAPUP[persona], runId),
         wait(WRAPUP_READ_MS * PACE_MULTIPLIER[pace], runId),
@@ -144,6 +168,7 @@ export function useJarvis() {
       setBriefingIndex(-1)
       setPhase('idle')
       setActiveId(null)
+      setResultDisplay(null)
     } catch {
       // Cancelled mid-flight — dismiss() already reset visible state.
     }
@@ -152,6 +177,7 @@ export function useJarvis() {
   const startBriefing = useCallback(() => {
     clearAllTimeouts()
     stopSpeech()
+    stopListening()
     runBriefing()
   }, [runBriefing])
 
@@ -160,6 +186,7 @@ export function useJarvis() {
     if (!scenario) return
     clearAllTimeouts()
     stopSpeech()
+    stopListening()
     const runId = beginRun()
     setBriefing(false)
     setBriefingIndex(-1)
@@ -172,10 +199,102 @@ export function useJarvis() {
     }
   }, [runScenario])
 
-  const triggerRandom = useCallback(() => {
-    const pick = SCENARIOS[Math.floor(Math.random() * SCENARIOS.length)]
-    triggerScenario(pick.id)
-  }, [triggerScenario])
+  // Runs the processing -> result tail for a voice command we've already
+  // heard (real listening already happened via SpeechRecognition, so this
+  // skips straight to "thinking about it").
+  const presentVoiceResult = useCallback(async (runId, display, scenarioId) => {
+    if (cancelledRef.current || runId !== runIdRef.current) return
+    setPhase('processing')
+    try {
+      await wait(PROCESS_MS * PACE_MULTIPLIER[pace], runId)
+    } catch {
+      return
+    }
+    if (cancelledRef.current || runId !== runIdRef.current) return
+    setActiveId(scenarioId ?? null)
+    setPhase('result')
+    setResultDisplay(display)
+    if (scenarioId) setCounts((c) => ({ ...c, [scenarioId]: (c[scenarioId] || 0) + 1 }))
+    await speak(display.text, runId)
+  }, [pace, speak, wait])
+
+  // Tapping the orb / J.A.R.V.I.S. ring now genuinely listens for a spoken
+  // command via the Web Speech API, matches it against known skills by
+  // keyword, and falls back gracefully if the browser can't listen, no
+  // speech is heard, or nothing matches.
+  const startListening = useCallback(() => {
+    clearAllTimeouts()
+    stopSpeech()
+    stopListening()
+    const runId = beginRun()
+    setBriefing(false)
+    setBriefingIndex(-1)
+    setActiveId(null)
+    setResultDisplay(null)
+    setPhase('listening')
+
+    const SpeechRecognitionImpl = typeof window !== 'undefined'
+      && (window.SpeechRecognition || window.webkitSpeechRecognition)
+
+    if (!SpeechRecognitionImpl) {
+      presentVoiceResult(runId, {
+        ...JARVIS_TAG,
+        text: "Voice input isn't supported in this browser — try Chrome, Edge, or Safari, or tap a card instead.",
+      }, null)
+      return
+    }
+
+    const recognition = new SpeechRecognitionImpl()
+    recognition.lang = 'en-US'
+    recognition.continuous = false
+    recognition.interimResults = false
+    recognition.maxAlternatives = 1
+    recognitionRef.current = recognition
+
+    let settled = false
+
+    recognition.onresult = (event) => {
+      settled = true
+      if (cancelledRef.current || runId !== runIdRef.current) return
+      const said = event.results[0][0].transcript
+      const scenario = matchScenario(said)
+      if (scenario) {
+        presentVoiceResult(runId, { tag: scenario.tag, color: scenario.color, text: scenario.responses[persona] }, scenario.id)
+      } else {
+        presentVoiceResult(runId, {
+          ...JARVIS_TAG,
+          text: `I heard "${said}" — I don't have a skill for that yet.`,
+        }, null)
+      }
+    }
+
+    recognition.onerror = (event) => {
+      settled = true
+      if (cancelledRef.current || runId !== runIdRef.current) return
+      const text = event.error === 'not-allowed' || event.error === 'service-not-allowed'
+        ? "I need microphone access to listen — check your browser's permission settings."
+        : event.error === 'no-speech'
+          ? "I didn't hear anything — tap the orb and try again."
+          : "I couldn't hear that clearly — try again."
+      presentVoiceResult(runId, { ...JARVIS_TAG, text }, null)
+    }
+
+    recognition.onend = () => {
+      recognitionRef.current = null
+      if (!settled && !cancelledRef.current && runId === runIdRef.current) {
+        presentVoiceResult(runId, {
+          ...JARVIS_TAG,
+          text: "I didn't hear anything — tap the orb and try again.",
+        }, null)
+      }
+    }
+
+    try {
+      recognition.start()
+    } catch {
+      presentVoiceResult(runId, { ...JARVIS_TAG, text: "I couldn't start listening — try again." }, null)
+    }
+  }, [persona, presentVoiceResult])
 
   useEffect(() => {
     const id = setTimeout(() => { startBriefing() }, AUTO_START_DELAY_MS)
@@ -185,6 +304,7 @@ export function useJarvis() {
       runIdRef.current += 1
       clearAllTimeouts()
       stopSpeech()
+      stopListening()
     }
     // Auto-briefing should fire exactly once, on mount, with whatever
     // persona/pace are current at that moment.
@@ -193,12 +313,12 @@ export function useJarvis() {
 
   return {
     phase,
-    activeId,
     activeTab,
     setActiveTab,
     briefing,
     briefingIndex,
     counts,
+    resultDisplay,
     persona,
     setPersona,
     pace,
@@ -206,7 +326,7 @@ export function useJarvis() {
     theme,
     setTheme,
     triggerScenario,
-    triggerRandom,
+    startListening,
     startBriefing,
     dismiss,
   }

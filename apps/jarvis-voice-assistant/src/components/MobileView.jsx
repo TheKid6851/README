@@ -1,4 +1,4 @@
-import { SCENARIOS, TABS, BRIEFING_ORDER, WRAPUP, WRAPUP_ID } from '../data/scenarios'
+import { SCENARIOS, TABS, BRIEFING_ORDER } from '../data/scenarios'
 
 function greetingCopy() {
   const hour = new Date().getHours()
@@ -10,21 +10,14 @@ function greetingCopy() {
 
 export default function MobileView({ jarvis }) {
   const {
-    phase, activeId, activeTab, setActiveTab,
-    briefing, briefingIndex, persona,
-    triggerScenario, triggerRandom, dismiss,
+    phase, activeTab, setActiveTab,
+    briefing, briefingIndex, resultDisplay,
+    triggerScenario, startListening, dismiss,
   } = jarvis
 
   const greeting = greetingCopy()
   const tabScenarios = SCENARIOS.filter((s) => s.tab === activeTab)
   const showOverlay = phase !== 'idle'
-
-  const activeScenario = activeId && activeId !== WRAPUP_ID
-    ? SCENARIOS.find((s) => s.id === activeId)
-    : null
-  const tag = activeId === WRAPUP_ID ? 'Briefing' : activeScenario?.tag
-  const tagColor = activeId === WRAPUP_ID ? 'var(--accent)' : activeScenario?.color
-  const responseText = activeId === WRAPUP_ID ? WRAPUP[persona] : activeScenario?.responses?.[persona]
 
   return (
     <div className="mobile-view">
@@ -46,7 +39,7 @@ export default function MobileView({ jarvis }) {
         <>
           <button
             className="orb mobile-orb"
-            onClick={triggerRandom}
+            onClick={startListening}
             aria-label="Ask Jarvis"
           />
           <div className="greeting">
@@ -98,11 +91,11 @@ export default function MobileView({ jarvis }) {
         </div>
       )}
 
-      {showOverlay && phase === 'result' && (
+      {showOverlay && phase === 'result' && resultDisplay && (
         <div className="mobile-overlay">
-          <div className="result-block" style={{ '--tag-color': tagColor }}>
-            <div className="tag">{tag}</div>
-            <div className="response">{responseText}</div>
+          <div className="result-block" style={{ '--tag-color': resultDisplay.color }}>
+            <div className="tag">{resultDisplay.tag}</div>
+            <div className="response">{resultDisplay.text}</div>
           </div>
           <button className="dismiss-link" onClick={dismiss}>
             Ask something else

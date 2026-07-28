@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { SCENARIOS, TABS, WRAPUP, WRAPUP_ID } from '../data/scenarios'
+import { SCENARIOS, TABS } from '../data/scenarios'
 
 const CATEGORY_CYCLE = SCENARIOS.map((s) => s.color)
 
@@ -48,8 +48,8 @@ function useClock() {
 
 export default function DesktopView({ jarvis }) {
   const {
-    phase, activeId, activeTab, setActiveTab,
-    counts, persona, triggerScenario, triggerRandom, dismiss,
+    phase, activeTab, setActiveTab,
+    counts, resultDisplay, triggerScenario, startListening, dismiss,
   } = jarvis
   const { nodes, lines } = useNodeGraph()
   const clock = useClock()
@@ -57,20 +57,13 @@ export default function DesktopView({ jarvis }) {
   const status = STATUS_BY_PHASE[phase]
   const tabScenarios = SCENARIOS.filter((s) => s.tab === activeTab)
 
-  const activeScenario = activeId && activeId !== WRAPUP_ID
-    ? SCENARIOS.find((s) => s.id === activeId)
-    : null
-  const tag = activeId === WRAPUP_ID ? 'Briefing' : activeScenario?.tag
-  const tagColor = activeId === WRAPUP_ID ? 'var(--accent)' : activeScenario?.color
-  const responseText = activeId === WRAPUP_ID ? WRAPUP[persona] : activeScenario?.responses?.[persona]
-
   const cmdText = phase === 'idle'
     ? 'Standby — say something, or pick a skill.'
     : phase === 'listening'
       ? 'Listening…'
       : phase === 'processing'
         ? 'Working on it…'
-        : responseText
+        : resultDisplay?.text
 
   return (
     <div className="desktop-view">
@@ -131,7 +124,7 @@ export default function DesktopView({ jarvis }) {
             strokeDasharray="2 6"
           />
         </svg>
-        <button className="inner-disc" onClick={triggerRandom} aria-label="Ask Jarvis">
+        <button className="inner-disc" onClick={startListening} aria-label="Ask Jarvis">
           <span className="jarvis-label">J.A.R.V.I.S.</span>
           <span className="status-dot" />
           <span className="status-word">{status.word}</span>
@@ -141,7 +134,9 @@ export default function DesktopView({ jarvis }) {
       <div className="command-bar">
         <div className={`orb cmd-orb ${phase === 'processing' ? 'processing' : ''}`} />
         <div className="cmd-text">
-          {tag && phase === 'result' && <span className="cmd-tag" style={{ '--tag-color': tagColor }}>{tag}</span>}
+          {phase === 'result' && resultDisplay && (
+            <span className="cmd-tag" style={{ '--tag-color': resultDisplay.color }}>{resultDisplay.tag}</span>
+          )}
           {cmdText}
         </div>
         {phase === 'result' && (
