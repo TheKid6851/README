@@ -1,22 +1,33 @@
 // Cloudflare Worker: holds AI provider keys server-side and proxies
 // open-ended questions from the Jarvis app to them. Tries each configured
-// provider in order until one succeeds:
-//   1. Gemini      — free tier, with live Google Search grounding
-//   2. Groq        — free tier, fast, no live search
-//   3. Cerebras    — free tier, fast, no live search
-//   4. Mistral     — free tier, no live search
-//   5. OpenRouter  — free-tier (":free") models, no live search
-//   6. HuggingFace — free inference router, no live search
+// provider in order (best/most-reliable first) until one succeeds:
+//   1. Gemini       — free tier, with live Google Search grounding
+//   2. Groq         — free tier, fast, large model, no live search
+//   3. Cerebras     — free tier, fast, large model, no live search
+//   4. SambaNova    — free tier, large model, no live search
+//   5. Together AI  — explicitly free-tier model, no live search
+//   6. Mistral      — free tier, no live search
+//   7. NVIDIA NIM   — free credits, broad model catalog, no live search
+//   8. GitHub Models — free (any GitHub account), tight rate limits
+//   9. OpenRouter   — free-tier (":free") models, no live search
+//  10. Cohere       — free trial key, no live search
+//  11. HuggingFace  — free inference router, no live search
 // If a provider errors or its free quota is exhausted, the next one in
 // the chain is tried automatically, so one provider running dry doesn't
-// take the app down.
+// take the app down. You don't need all of these configured — even
+// Gemini + one fallback covers most cases; the rest are just headroom.
 //
 // Keys never reach the browser — set only the ones you want with:
 //   wrangler secret put GEMINI_API_KEY
 //   wrangler secret put GROQ_API_KEY
 //   wrangler secret put CEREBRAS_API_KEY
+//   wrangler secret put SAMBANOVA_API_KEY
+//   wrangler secret put TOGETHER_API_KEY
 //   wrangler secret put MISTRAL_API_KEY
+//   wrangler secret put NVIDIA_API_KEY
+//   wrangler secret put GITHUB_MODELS_TOKEN
 //   wrangler secret put OPENROUTER_API_KEY
+//   wrangler secret put COHERE_API_KEY
 //   wrangler secret put HF_API_KEY
 // Any provider whose key isn't set is skipped. Add more the same way —
 // append an entry to PROVIDERS below for any other OpenAI-compatible
@@ -87,9 +98,10 @@ async function callGemini(env, message, systemText) {
   return text
 }
 
-// Groq, Cerebras, and Mistral all speak the same OpenAI-compatible
-// chat-completions shape, so one helper covers all three. None of them
-// do live web search — they answer from what the model already knows.
+// Every other provider below speaks the same OpenAI-compatible
+// chat-completions shape (POST {model, messages}, Bearer auth), so one
+// helper covers all of them. None do live web search — they answer from
+// what the model already knows.
 async function callOpenAICompatible(url, apiKey, model, message, systemText) {
   const upstream = await fetch(url, {
     method: 'POST',
@@ -118,7 +130,8 @@ async function callOpenAICompatible(url, apiKey, model, message, systemText) {
   return text
 }
 
-// Tried in this order. Each is skipped if its key isn't configured.
+// Tried in this order (best/most-reliable first). Each is skipped if its
+// key isn't configured.
 const PROVIDERS = [
   {
     name: 'gemini',
@@ -146,6 +159,26 @@ const PROVIDERS = [
     ),
   },
   {
+    name: 'sambanova',
+    envKey: 'SAMBANOVA_API_KEY',
+    call: (env, message, systemText) => callOpenAICompatible(
+      'https://api.sambanova.ai/v1/chat/completions',
+      env.SAMBANOVA_API_KEY,
+      env.SAMBANOVA_MODEL || 'Meta-Llama-3.3-70B-Instruct',
+      message, systemText,
+    ),
+  },
+  {
+    name: 'together',
+    envKey: 'TOGETHER_API_KEY',
+    call: (env, message, systemText) => callOpenAICompatible(
+      'https://api.together.xyz/v1/chat/completions',
+      env.TOGETHER_API_KEY,
+      env.TOGETHER_MODEL || 'meta-llama/Llama-3.3-70B-Instruct-Turbo-Free',
+      message, systemText,
+    ),
+  },
+  {
     name: 'mistral',
     envKey: 'MISTRAL_API_KEY',
     call: (env, message, systemText) => callOpenAICompatible(
@@ -156,12 +189,42 @@ const PROVIDERS = [
     ),
   },
   {
+    name: 'nvidia',
+    envKey: 'NVIDIA_API_KEY',
+    call: (env, message, systemText) => callOpenAICompatible(
+      'https://integrate.api.nvidia.com/v1/chat/completions',
+      env.NVIDIA_API_KEY,
+      env.NVIDIA_MODEL || 'meta/llama-3.3-70b-instruct',
+      message, systemText,
+    ),
+  },
+  {
+    name: 'githubmodels',
+    envKey: 'GITHUB_MODELS_TOKEN',
+    call: (env, message, systemText) => callOpenAICompatible(
+      'https://models.github.ai/inference/chat/completions',
+      env.GITHUB_MODELS_TOKEN,
+      env.GITHUB_MODELS_MODEL || 'openai/gpt-4o-mini',
+      message, systemText,
+    ),
+  },
+  {
     name: 'openrouter',
     envKey: 'OPENROUTER_API_KEY',
     call: (env, message, systemText) => callOpenAICompatible(
       'https://openrouter.ai/api/v1/chat/completions',
       env.OPENROUTER_API_KEY,
       env.OPENROUTER_MODEL || 'meta-llama/llama-3.3-70b-instruct:free',
+      message, systemText,
+    ),
+  },
+  {
+    name: 'cohere',
+    envKey: 'COHERE_API_KEY',
+    call: (env, message, systemText) => callOpenAICompatible(
+      'https://api.cohere.ai/compatibility/v1/chat/completions',
+      env.COHERE_API_KEY,
+      env.COHERE_MODEL || 'command-r-plus',
       message, systemText,
     ),
   },

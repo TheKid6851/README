@@ -1,10 +1,16 @@
-# Tried in this order — only GEMINI_API_KEY is "primary", the rest are
-# optional fallbacks used automatically if the ones before them error or
-# hit their free quota. Leave any of them unset to skip that provider.
-# You don't need all six — even just Gemini + one fallback is plenty.
+# Tried in this order (best/most-reliable first) — only GEMINI_API_KEY is
+# "primary", the rest are optional fallbacks used automatically if the
+# ones before them error or hit their free quota. Leave any of them unset
+# to skip that provider. You don't need all of these — even just Gemini +
+# one fallback is plenty; the rest are extra headroom.
 GEMINI_API_KEY=your-free-gemini-api-key-here
 GROQ_API_KEY=your-free-groq-api-key-here
 CEREBRAS_API_KEY=your-free-cerebras-api-key-here
+SAMBANOVA_API_KEY=your-free-sambanova-api-key-here
+TOGETHER_API_KEY=your-free-together-api-key-here
 MISTRAL_API_KEY=your-free-mistral-api-key-here
+NVIDIA_API_KEY=your-free-nvidia-nim-api-key-here
+GITHUB_MODELS_TOKEN=your-github-personal-access-token-here
 OPENROUTER_API_KEY=your-free-openrouter-api-key-here
+COHERE_API_KEY=your-free-cohere-trial-api-key-here
 HF_API_KEY=your-free-huggingface-api-key-here
