@@ -300,7 +300,54 @@ button { font-family: inherit; cursor: pointer; }
 .blob.one { top: -10%; left: -8%; background: radial-gradient(circle, oklch(0.5 0.16 280), transparent 70%); animation: driftOne 16s ease-in-out infinite; }
 .blob.two { bottom: -14%; right: -8%; background: radial-gradient(circle, oklch(0.5 0.18 340), transparent 70%); animation: driftTwo 18s ease-in-out infinite; }
 
-.node-graph { position: absolute; inset: 0; z-index: 1; }
+.orbital-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  touch-action: none;
+  cursor: grab;
+}
+.orbital-layer.interacting { cursor: grabbing; }
+.node-graph { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+
+.zoom-controls {
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: oklch(0.14 0.012 260 / 0.85);
+  backdrop-filter: blur(14px);
+  border: 1px solid oklch(1 0 0 / 0.08);
+  border-radius: var(--radius-pill);
+  padding: 4px;
+}
+.zoom-controls button {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  border-radius: var(--radius-pill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.zoom-controls button:hover { background: oklch(1 0 0 / 0.08); color: var(--text-primary); }
+.zoom-controls button:not(.zoom-readout) {
+  width: 26px;
+  height: 26px;
+  font-size: 15px;
+}
+.zoom-controls .zoom-readout {
+  min-width: 46px;
+  height: 26px;
+  padding: 0 6px;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
 .node-graph circle.node {
   animation-timing-function: ease-in-out;
   animation-iteration-count: infinite;
@@ -320,78 +367,74 @@ button { font-family: inherit; cursor: pointer; }
   color: var(--text-muted);
 }
 
-.skills-panel {
-  position: absolute;
-  top: 20px;
-  right: 24px;
-  width: 200px;
-  z-index: 2;
-  background: oklch(0.14 0.012 260 / 0.85);
-  backdrop-filter: blur(14px);
-  border-radius: 16px;
-  border: 1px solid oklch(1 0 0 / 0.08);
-  padding: 10px;
+/* ---------- Orbital hub scene ---------- */
+.orbit-ring {
+  fill: none;
+  stroke: oklch(1 0 0 / 0.14);
+  stroke-width: 0.22;
+  transform-box: fill-box;
+  transform-origin: center;
+  pointer-events: none;
 }
-.skills-panel .mini-tabs {
-  display: flex;
-  gap: 3px;
-  background: oklch(1 0 0 / 0.05);
-  border-radius: var(--radius-pill);
-  padding: 3px;
-  margin-bottom: 8px;
-}
-.skills-panel .mini-tabs button {
-  flex: 1;
-  min-width: 0;
-  border: none;
-  background: transparent;
-  border-radius: var(--radius-pill);
-  padding: 5px 2px;
-  font-size: 9px;
-  font-weight: 600;
-  color: oklch(0.6 0.02 260);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.skills-panel .mini-tabs button.active {
-  background: oklch(1 0 0 / 0.14);
-  color: var(--text-primary);
-}
-.skills-panel .skill-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 4px;
-  border-radius: 8px;
-  border: none;
-  background: transparent;
-  width: 100%;
-  text-align: left;
-  color: var(--text-primary);
-}
-.skills-panel .skill-row:hover { background: oklch(1 0 0 / 0.06); }
-.skills-panel .skill-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-.skills-panel .skill-name { flex: 1; font-size: 12px; }
-.skills-panel .skill-count { font-size: 11px; color: var(--text-dim); }
+.orbit-ring.dashed { stroke-dasharray: 1 2.6; }
+.orbit-ring.spin-a { animation: spin 50s linear infinite; }
+.orbit-ring.spin-b { animation: spin 75s linear infinite reverse; }
+.orbit-ring.spin-c { animation: spin 110s linear infinite; }
 
-.status-ring-wrap {
-  position: absolute;
-  /* Centered via top offset (not transform: translateY) so the drag
-     gesture's inline transform can fully own that property. */
-  top: calc(46% - 60px);
-  right: 90px;
-  z-index: 2;
-  width: 120px;
-  height: 120px;
+.spoke {
+  stroke-width: 0.12;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
 }
-.status-ring-wrap svg.ring { position: absolute; inset: 0; animation: spin 16s linear infinite; }
-.status-ring-wrap button.inner-disc {
+
+.hex-icon {
+  cursor: pointer;
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 0.15s ease, opacity 0.3s ease;
+}
+.hex-icon:hover { transform: scale(1.18); }
+.hex-icon polygon { transition: fill 0.2s ease; }
+.hex-icon:hover polygon { fill: oklch(0.27 0.02 260); }
+.hex-icon .hex-label {
+  font-family: var(--font-display);
+  font-weight: 700;
+  pointer-events: none;
+  text-anchor: middle;
+}
+.hex-icon .hex-count text {
+  font-family: var(--font-body);
+  font-weight: 700;
+  pointer-events: none;
+  text-anchor: middle;
+}
+
+.hub {
+  position: absolute;
+  /* Matches the SVG diagram's own center (CENTER in DesktopView.jsx),
+     shifted up from true 50% so the ring clears the bottom chrome. */
+  top: 44%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 108px;
+  height: 108px;
+  z-index: 1;
+}
+.hub-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1px dashed var(--ring-color);
+  opacity: 0.55;
+  animation: spin 16s linear infinite;
+}
+.hub-button {
   position: absolute;
   inset: 14px;
   border-radius: 50%;
   border: none;
-  background: oklch(0.14 0.012 260 / 0.9);
+  background: oklch(0.13 0.012 260 / 0.94);
+  box-shadow: 0 0 0 1px oklch(1 0 0 / 0.08);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -399,20 +442,33 @@ button { font-family: inherit; cursor: pointer; }
   gap: 4px;
   animation: ringPulse 2.4s ease-in-out infinite;
 }
-.status-ring-wrap .jarvis-label {
+.hub-button .jarvis-label {
   font-family: var(--font-display);
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.08em;
   color: var(--text-muted);
 }
-.status-ring-wrap .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ring-color); }
-.status-ring-wrap .status-word {
+.hub-button .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ring-color); }
+.hub-button .status-word {
   font-size: 9.5px;
   font-weight: 700;
   letter-spacing: 0.06em;
   color: var(--ring-color);
   text-transform: uppercase;
+}
+
+.desktop-tab-bar {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  width: 320px;
+  background: oklch(0.14 0.012 260 / 0.85);
+  backdrop-filter: blur(14px);
+  border: 1px solid oklch(1 0 0 / 0.08);
+  box-sizing: border-box;
 }
 
 .command-bar {
@@ -536,7 +592,6 @@ button { font-family: inherit; cursor: pointer; }
   align-items: center;
   justify-content: center;
 }
-.desktop-view .tweaks-toggle { top: 20px; right: 234px; }
 
 .tweaks-panel {
   position: absolute;
@@ -554,7 +609,6 @@ button { font-family: inherit; cursor: pointer; }
   gap: 14px;
   animation: fadeUp 0.2s ease;
 }
-.desktop-view .tweaks-panel { right: 234px; }
 .tweaks-group label.group-label {
   font-size: 10px;
   font-weight: 700;
