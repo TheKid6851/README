@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    body { margin: 0; background: oklch(0.14 0.014 260); }
+    @keyframes waveBar { 0%, 100% { transform: scaleY(0.25); } 50% { transform: scaleY(1); } }
+    @keyframes orbGlow { 0%, 100% { box-shadow: 0 0 24px 4px oklch(0.75 0.15 200 / 0.35); } 50% { box-shadow: 0 0 44px 12px oklch(0.75 0.15 200 / 0.6); } }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes float0 { 0%, 100% { transform: translate(0,0); } 50% { transform: translate(4px, -6px); } }
+    @keyframes float1 { 0%, 100% { transform: translate(0,0); } 50% { transform: translate(-5px, 5px); } }
+    @keyframes float2 { 0%, 100% { transform: translate(0,0); } 50% { transform: translate(6px, 4px); } }
+    @keyframes ringPulse { 0%, 100% { box-shadow: 0 0 0 0 oklch(0.72 0.15 200 / 0.35); } 50% { box-shadow: 0 0 0 10px oklch(0.72 0.15 200 / 0); } }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    a { color: oklch(0.78 0.14 200); }
+    a:hover { color: oklch(0.85 0.12 200); }
+  </style>
+</helmet>
+
+<div style="min-height: 100vh; box-sizing: border-box; padding: 56px 64px 120px; display: flex; flex-direction: column; gap: 40px; font-family: 'Inter', system-ui, sans-serif; color: oklch(0.95 0.005 260);">
+
+  <div style="display: flex; flex-direction: column; gap: 6px;">
+    <h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 30px; font-weight: 700; letter-spacing: -0.01em;">Jarvis — Voice HUD</h1>
+    <p style="margin: 0; font-size: 15px; color: oklch(0.65 0.02 260); max-width: 640px;">Waveform interaction, formal butler persona, phase-driven flow. Tap any suggestion, the orb, or a dock icon to run a scripted demo end to end.</p>
+  </div>
+
+  <div style="display: flex; gap: 28px; align-items: flex-start; flex-wrap: wrap;">
+    <!-- phone -->
+    <div style="transform: scale(0.92); transform-origin: top left;">
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="402,874">
+        <div style="position: relative; height: 100%; padding-top: 88px; box-sizing: border-box; background: radial-gradient(120% 90% at 50% 0%, oklch(0.22 0.03 260) 0%, oklch(0.1 0.012 260) 65%); display: flex; flex-direction: column; align-items: center; overflow: hidden;">
+
+          <sc-if value="{{ briefing }}" hint-placeholder-val="{{ true }}">
+            <div style="position: absolute; top: 96px; left: 0; right: 0; display: flex; justify-content: center; gap: 6px; z-index: 5;">
+              <sc-for list="{{ briefDots }}" as="d" hint-placeholder-count="8">
+                <div style="width: 6px; height: 6px; border-radius: 50%; background: {{ d.bg }}; transition: background 0.3s ease;"></div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ aIdle }}" hint-placeholder-val="{{ true }}">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 28px; padding: 0 28px; flex: 1;">
+              <sc-if value="{{ accentCyan }}" hint-placeholder-val="{{ true }}">
+                <div onClick="{{ randomA }}" style="cursor: pointer; width: 88px; height: 88px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, oklch(0.85 0.1 200), oklch(0.55 0.15 250)); animation: orbGlow 3s ease-in-out infinite;"></div>
+              </sc-if>
+              <sc-if value="{{ accentAmber }}" hint-placeholder-val="{{ false }}">
+                <div onClick="{{ randomA }}" style="cursor: pointer; width: 88px; height: 88px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, oklch(0.85 0.12 70), oklch(0.55 0.15 40)); animation: orbGlow 3s ease-in-out infinite;"></div>
+              </sc-if>
+              <sc-if value="{{ accentViolet }}" hint-placeholder-val="{{ false }}">
+                <div onClick="{{ randomA }}" style="cursor: pointer; width: 88px; height: 88px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, oklch(0.82 0.12 300), oklch(0.55 0.15 280)); animation: orbGlow 3s ease-in-out infinite;"></div>
+              </sc-if>
+              <sc-if value="{{ briefing }}" hint-placeholder-val="{{ true }}">
+                <div style="text-align: center;">
+                  <div style="font-family: 'Space Grotesk', sans-serif; font-size: 19px; font-weight: 600;">Good evening, sir.</div>
+                  <div style="font-size: 13.5px; color: oklch(0.65 0.02 260); margin-top: 4px;">Compiling your briefing…</div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ !briefing }}" hint-placeholder-val="{{ false }}">
+                <div style="text-align: center;">
+                  <div style="font-family: 'Space Grotesk', sans-serif; font-size: 19px; font-weight: 600;">Good evening.</div>
+                  <div style="font-size: 13.5px; color: oklch(0.65 0.02 260); margin-top: 4px;">Tap the orb, or try one of these:</div>
+                </div>
+                <div style="display: flex; gap: 6px; width: 100%;">
+                  <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="3">
+                    <div onClick="{{ t.onClick }}" style="cursor: pointer; flex: 1; text-align: center; padding: 7px 4px; border-radius: 999px; font-size: 11.5px; font-weight: 600; background: {{ t.activeBg }}; color: {{ t.activeColor }};">{{ t.label }}</div>
+                  </sc-for>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 10px; width: 100%;">
+                  <sc-for list="{{ scenariosTab }}" as="s" hint-placeholder-count="3">
+                    <div onClick="{{ s.onClick }}" style="cursor: pointer; padding: 13px 16px; border-radius: 16px; background: oklch(1 0 0 / 0.05); border: 1px solid oklch(1 0 0 / 0.08); font-size: 13.5px;" style-hover="background: oklch(1 0 0 / 0.09);">
+                      <span style="color: {{ s.color }}; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;">{{ s.tag }}</span>
+                      <div style="margin-top: 3px;">"{{ s.prompt }}"</div>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ aListening }}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; flex: 1;">
+              <sc-if value="{{ accentCyan }}" hint-placeholder-val="{{ true }}">
+                <div style="display: flex; align-items: center; gap: 6px; height: 56px;">
+                  <div style="width: 8px; height: 40px; border-radius: 4px; background: oklch(0.78 0.14 200); animation: {{ aBar0 }};"></div>
+                  <div style="width: 8px; height: 40px; border-radius: 4px; background: oklch(0.78 0.14 200); animation: {{ aBar1 }};"></div>
+                  <div style="width: 8px; height: 40px; border-radius: 4px; background: oklch(0.78 0.14 200); animation: {{ aBar2 }};"></div>
+                  <div style="width: 8px; height: 40px; border-radius: 4px; background: oklch(0.78 0.14 200); animation: {{ aBar3 }};"></div>
+                  <div style="width: 8px; height: 40px; border-radius: 4px; background: oklch(0.78 0.14 200); animation: {{ aBar4 }};"></div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ accentAmber }}" hint-placeholder-val="{{ false }}">
+                <div style="display: flex; align-items: center; gap: 6px; height: 56px;">
+                  <div style="width: 8px; height: 40px; border-radius: 4px; background: oklch(0.78 0.14 70); animation: {{ aBar0 }};"></div>
+                  <div style="width: 8px; height: 40px; border-radius: 4px; background: oklch(0.78 0.14 70); animation: {{ aBar1 }};"></div>
+                  <div style="width: 8px; height: 40px; border-radius: 4px; background: oklch(0.78 0.14 70); animation: {{ aBar2 }};"></div>
+                  <div style="width: 8px; height: 40px; border-radius: 4px; background: oklch(0.78 0.14 70); animation: {{ aBar3 }};"></div>
+                  <div style="width: 8px; height: 40px; border-radius: 4px; background: oklch(0.78 0.14 70); animation: {{ aBar4 }};"></div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ accentViolet }}" hint-placeholder-val="{{ false }}">
+                <div style="display: flex; align-items: center; gap: 6px; height: 56px;">
+                  <div style="width: 8px; height: 40px; border-radius: 4px; background: oklch(0.78 0.14 300); animation: {{ aBar0 }};"></div>
+                  <div style="width: 8px; height: 40px; border-radius: 4px; background: oklch(0.78 0.14 300); animation: {{ aBar1 }};"></div>
+                  <div style="width: 8px; height: 40px; border-radius: 4px; background: oklch(0.78 0.14 300); animation: {{ aBar2 }};"></div>
+                  <div style="width: 8px; height: 40px; border-radius: 4px; background: oklch(0.78 0.14 300); animation: {{ aBar3 }};"></div>
+                  <div style="width: 8px; height: 40px; border-radius: 4px; background: oklch(0.78 0.14 300); animation: {{ aBar4 }};"></div>
+                </div>
+              </sc-if>
+              <div style="font-size: 13.5px; color: oklch(0.65 0.02 260);">Listening…</div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ aProcessing }}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; flex: 1;">
+              <div style="width: 60px; height: 60px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, oklch(0.85 0.1 200), oklch(0.55 0.15 250)); animation: orbGlow 0.8s ease-in-out infinite;"></div>
+              <div style="font-size: 13.5px; color: oklch(0.65 0.02 260);">Working on it…</div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ aResult }}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; flex-direction: column; gap: 16px; padding: 0 24px; flex: 1; justify-content: center; animation: fadeUp 0.35s ease;">
+              <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: oklch(0.78 0.14 200);">{{ aActive.tag }}</div>
+              <div style="font-family: 'Space Grotesk', sans-serif; font-size: 18px; line-height: 1.4; font-weight: 500;">{{ aActiveText }}</div>
+              <div onClick="{{ resetA }}" style="margin-top: 8px; align-self: flex-start; font-size: 12.5px; color: oklch(0.65 0.02 260); cursor: pointer; border-bottom: 1px solid oklch(0.4 0.02 260);">Ask something else</div>
+            </div>
+          </sc-if>
+
+        </div>
+      </x-import>
+    </div>
+
+    <!-- desktop -->
+    <div style="width: 700px; height: 480px; border-radius: 16px; position: relative; overflow: hidden; background: oklch(0.08 0.012 260); box-shadow: 0 20px 50px rgba(0,0,0,0.4);">
+      <svg width="700" height="480" style="position: absolute; inset: 0;">
+        <sc-for list="{{ graphEdges }}" as="e" hint-placeholder-count="46">
+          <line x1="{{ e.x1 }}" y1="{{ e.y1 }}" x2="{{ e.x2 }}" y2="{{ e.y2 }}" stroke="oklch(0.55 0.05 150 / 0.3)" stroke-width="1"></line>
+        </sc-for>
+        <sc-for list="{{ graphNodes }}" as="n" hint-placeholder-count="34">
+          <circle cx="{{ n.cx }}" cy="{{ n.cy }}" r="{{ n.r }}" fill="{{ n.fill }}" style="animation: {{ n.anim }}; animation-delay: {{ n.animDelay }}; transform-box: fill-box; transform-origin: center;"></circle>
+        </sc-for>
+      </svg>
+
+      <sc-if value="{{ briefing }}" hint-placeholder-val="{{ true }}">
+        <div style="position: absolute; top: 14px; left: 0; right: 0; display: flex; justify-content: center; gap: 6px; z-index: 3;">
+          <sc-for list="{{ briefDots }}" as="d" hint-placeholder-count="8">
+            <div style="width: 6px; height: 6px; border-radius: 50%; background: {{ d.bg }}; transition: background 0.3s ease;"></div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+
+
+      <div style="position: absolute; top: 16px; right: 16px; width: 190px; background: oklch(0.14 0.012 260 / 0.85); backdrop-filter: blur(14px); border: 1px solid oklch(1 0 0 / 0.08); border-radius: 12px; padding: 10px 12px; z-index: 2;">
+        <div style="font-size: 10px; font-weight: 700; letter-spacing: 0.06em; color: oklch(0.55 0.02 260); margin-bottom: 8px;">SKILLS</div>
+        <div style="display: flex; gap: 4px; margin-bottom: 8px;">
+          <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="3">
+            <div onClick="{{ t.onClick }}" style="cursor: pointer; flex: 1; text-align: center; padding: 4px 2px; border-radius: 6px; font-size: 9px; font-weight: 700; background: {{ t.activeBg }}; color: {{ t.activeColor }};">{{ t.label }}</div>
+          </sc-for>
+        </div>
+        <sc-for list="{{ skillsA }}" as="s" hint-placeholder-count="3">
+          <div style="display: flex; align-items: center; gap: 6px; padding: 3px 0; font-size: 10px; line-height: 1.25;">
+            <div style="width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; background: {{ s.color }};"></div>
+            <div style="flex: 1; color: oklch(0.8 0.01 260);">{{ s.tag }}</div>
+            <div style="color: oklch(0.5 0.02 260); flex-shrink: 0;">{{ s.count }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="position: absolute; top: 224px; right: 32px; width: 110px; height: 110px; z-index: 2;">
+        <svg width="110" height="110" style="position: absolute; inset: 0; animation: spin 16s linear infinite;">
+          <circle cx="55" cy="55" r="52" fill="none" stroke="{{ ringColor }}" stroke-width="1.5" stroke-dasharray="2 6" opacity="0.6"></circle>
+        </svg>
+        <div onClick="{{ randomA }}" style="cursor: pointer; position: absolute; inset: 14px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; background: oklch(0.14 0.012 260 / 0.9); border: 2px solid {{ ringColor }}; animation: ringPulse 2.4s ease-in-out infinite;">
+          <div style="font-family: 'Space Grotesk', sans-serif; font-size: 12px; letter-spacing: 0.1em; color: oklch(0.88 0.01 260);">J.A.R.V.I.S.</div>
+          <div style="display: flex; align-items: center; gap: 5px;">
+            <div style="width: 6px; height: 6px; border-radius: 50%; background: {{ ringColor }};"></div>
+            <div style="font-size: 10px; font-weight: 700; letter-spacing: 0.06em; color: {{ ringColor }};">{{ ringLabel }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="position: absolute; bottom: 60px; left: 16px; right: 16px; border-radius: 16px; background: oklch(0.14 0.012 260 / 0.9); backdrop-filter: blur(18px); border: 1px solid oklch(1 0 0 / 0.08); box-shadow: 0 20px 50px rgba(0,0,0,0.5); padding: 16px 18px; display: flex; align-items: center; gap: 12px; z-index: 2;">
+        <sc-if value="{{ accentCyan }}" hint-placeholder-val="{{ true }}">
+          <div onClick="{{ randomA }}" style="cursor: pointer; width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; background: radial-gradient(circle at 35% 30%, oklch(0.85 0.1 200), oklch(0.55 0.15 250));"></div>
+        </sc-if>
+        <sc-if value="{{ accentAmber }}" hint-placeholder-val="{{ false }}">
+          <div onClick="{{ randomA }}" style="cursor: pointer; width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; background: radial-gradient(circle at 35% 30%, oklch(0.85 0.12 70), oklch(0.55 0.15 40));"></div>
+        </sc-if>
+        <sc-if value="{{ accentViolet }}" hint-placeholder-val="{{ false }}">
+          <div onClick="{{ randomA }}" style="cursor: pointer; width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; background: radial-gradient(circle at 35% 30%, oklch(0.82 0.12 300), oklch(0.55 0.15 280));"></div>
+        </sc-if>
+        <sc-if value="{{ aIdle }}" hint-placeholder-val="{{ true }}">
+          <sc-if value="{{ briefing }}" hint-placeholder-val="{{ true }}">
+            <div style="font-size: 13.5px; color: oklch(0.65 0.02 260);">Compiling your briefing…</div>
+          </sc-if>
+          <sc-if value="{{ !briefing }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size: 13.5px; color: oklch(0.65 0.02 260);">Ask Jarvis anything, sir — or click the orb.</div>
+          </sc-if>
+        </sc-if>
+        <sc-if value="{{ aListening }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size: 13.5px;">Listening…</div>
+        </sc-if>
+        <sc-if value="{{ aProcessing }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size: 13.5px;">Working on it…</div>
+        </sc-if>
+        <sc-if value="{{ aResult }}" hint-placeholder-val="{{ false }}">
+          <div style="flex: 1; font-size: 13.5px; font-weight: 500;">{{ aActiveText }}</div>
+          <div onClick="{{ resetA }}" style="cursor: pointer; flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; background: oklch(1 0 0 / 0.08); display: flex; align-items: center; justify-content: center; font-size: 12px; color: oklch(0.65 0.02 260);" style-hover="background: oklch(1 0 0 / 0.14);">✕</div>
+        </sc-if>
+      </div>
+
+      <div style="position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; z-index: 2">
+        <sc-for list="{{ scenariosA }}" as="s" hint-placeholder-count="8">
+          <div onClick="{{ s.onClick }}" title="{{ s.prompt }}" style="cursor: pointer; width: 32px; height: 32px; border-radius: 9px; background: oklch(0.24 0.02 260); display: flex; align-items: center; justify-content: center; font-size: 9.5px; font-weight: 700; color: oklch(0.85 0.05 260); transition: transform 0.15s ease, background 0.15s ease;" style-hover="transform: scale(1.15) translateY(-3px); background: oklch(0.35 0.05 260);">{{ s.initial }}</div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;personaTone&quot;: {
+    &quot;editor&quot;: &quot;enum&quot;,
+    &quot;default&quot;: &quot;formal&quot;,
+    &quot;options&quot;: [&quot;formal&quot;, &quot;casual&quot;, &quot;minimal&quot;],
+    &quot;tsType&quot;: &quot;'formal' | 'casual' | 'minimal'&quot;,
+    &quot;section&quot;: &quot;Voice &amp; Persona&quot;
+  },
+  &quot;briefingPace&quot;: {
+    &quot;editor&quot;: &quot;enum&quot;,
+    &quot;default&quot;: &quot;normal&quot;,
+    &quot;options&quot;: [&quot;quick&quot;, &quot;normal&quot;, &quot;slow&quot;],
+    &quot;tsType&quot;: &quot;'quick' | 'normal' | 'slow'&quot;,
+    &quot;section&quot;: &quot;Voice &amp; Persona&quot;
+  },
+  &quot;accentTheme&quot;: {
+    &quot;editor&quot;: &quot;color&quot;,
+    &quot;default&quot;: &quot;#5fd4e0&quot;,
+    &quot;options&quot;: [&quot;#5fd4e0&quot;, &quot;#f0a63c&quot;, &quot;#c084fc&quot;],
+    &quot;tsType&quot;: &quot;string&quot;,
+    &quot;section&quot;: &quot;Appearance&quot;
+  }
+}">
+const TABS = [
+  { id: 'digest', label: 'Digest' },
+  { id: 'productivity', label: 'Productivity' },
+  { id: 'activities', label: 'Activities' },
+];
+const BASE_SCENARIOS = [
+  { id: 'markets', tag: 'Markets', category: 'digest', color: 'oklch(0.72 0.15 145)', prompt: 'How are my stocks doing?',
+    formal: 'Markets are up today, sir. Your portfolio is ahead 1.4 percent — technology is leading the gain.',
+    casual: "Good news — markets are up and your portfolio's ahead about 1.4%, tech's carrying it.",
+    minimal: 'Portfolio +1.4% · Tech leading' },
+  { id: 'quote', tag: 'Quote', category: 'digest', color: 'oklch(0.75 0.15 70)', prompt: "What's today's quote?",
+    formal: 'A thought for today: every era believes itself the modern one — today is no exception.',
+    casual: "Here's one for today: every era thinks it's the modern one — this one's no different.",
+    minimal: 'Quote: every era believes itself modern.' },
+  { id: 'weather', tag: 'Weather', category: 'digest', color: 'oklch(0.72 0.15 200)', prompt: "What's the weather like today?",
+    formal: 'Currently 68 degrees and clear, sir. Expect a high of 74 this afternoon with light winds.',
+    casual: "It's a nice one — 68 and clear now, headed to 74 with light wind this afternoon.",
+    minimal: '68°F clear · High 74 · Light wind' },
+  { id: 'news', tag: 'News', category: 'digest', color: 'oklch(0.72 0.15 25)', prompt: "What's in the news today?",
+    formal: 'Top story this morning: the Fed held interest rates steady and markets reacted calmly. Also trending: a battery breakthrough out of Seoul.',
+    casual: "Top of the news — the Fed held rates steady, markets took it in stride, and there's a neat battery breakthrough out of Seoul.",
+    minimal: 'Fed holds rates · Battery breakthrough, Seoul' },
+  { id: 'financial', tag: 'Financials', category: 'productivity', color: 'oklch(0.72 0.15 300)', prompt: 'Give me my financial update',
+    formal: 'Checking sits at $4,230, savings at $12,540. One card payment of $340 is due Friday.',
+    casual: "Checking's at $4,230, savings at $12,540, and heads up — a $340 card payment is due Friday.",
+    minimal: 'Checking $4,230 · Savings $12,540 · $340 due Fri' },
+  { id: 'email', tag: 'Email', category: 'productivity', color: 'oklch(0.72 0.15 350)', prompt: 'Summarize my unread emails',
+    formal: 'You have 6 unread. Top priority: a contract from Legal awaiting signature, and a reschedule request from your 3 o\'clock.',
+    casual: "You've got 6 unread — a contract from Legal needs a signature, and your 3 o'clock wants to reschedule.",
+    minimal: '6 unread · Legal contract · 3pm reschedule' },
+  { id: 'agenda', tag: 'Calendar & Tasks', category: 'productivity', color: 'oklch(0.72 0.15 230)', prompt: "What's on my plate today?",
+    formal: 'This afternoon: Design review at 1:00 and Dentist at 2:30. Open tasks: finish the Q3 deck and reply to Marcus.',
+    casual: "Afternoon's got a design review at 1 and the dentist at 2:30 — plus finish that Q3 deck and reply to Marcus.",
+    minimal: '1:00 Review · 2:30 Dentist · Q3 deck · Reply Marcus' },
+  { id: 'gym', tag: 'Workouts', category: 'activities', color: 'oklch(0.72 0.15 170)', prompt: "What's my workout today?",
+    formal: "Today is upper body, sir — bench press, rows, and twenty minutes of incline cardio. That's three sessions logged this week.",
+    casual: "Upper body day — bench, rows, and 20 minutes of incline cardio. That's 3 sessions this week already!",
+    minimal: 'Upper body · Bench, rows, 20min cardio · 3x this wk' },
+  { id: 'apps', tag: 'Apps', category: 'productivity', color: 'oklch(0.72 0.15 255)', prompt: 'Open Spotify and Slack',
+    formal: 'Right away, sir. Opening Spotify and Slack now.',
+    casual: 'On it — opening Spotify and Slack.',
+    minimal: 'Opened: Spotify, Slack' },
+];
+const WRAPUP = {
+  tag: 'Briefing',
+  formal: 'That covers everything for this morning, sir.',
+  casual: "That's everything for now!",
+  minimal: 'Briefing complete.',
+};
+const PACE_MULT = { quick: 0.8, normal: 1.5, slow: 2.4 };
+
+const CATEGORY_COLORS = ['oklch(0.72 0.15 200)', 'oklch(0.72 0.15 300)', 'oklch(0.75 0.15 70)', 'oklch(0.72 0.15 145)', 'oklch(0.72 0.15 350)', 'oklch(0.72 0.15 230)'];
+
+const NODES = [
+  { cx: 40, cy: 60, r: 6, ci: 3, delay: 0.2 }, { cx: 95, cy: 40, r: 4, ci: 5, delay: 1.1 },
+  { cx: 140, cy: 90, r: 7, ci: 2, delay: 0.6 }, { cx: 70, cy: 130, r: 5, ci: 0, delay: 1.6 },
+  { cx: 190, cy: 60, r: 5, ci: 3, delay: 0.4 }, { cx: 220, cy: 150, r: 8, ci: 2, delay: 1.3 },
+  { cx: 160, cy: 190, r: 6, ci: 5, delay: 0.8 }, { cx: 110, cy: 220, r: 4, ci: 0, delay: 0.3 },
+  { cx: 260, cy: 90, r: 5, ci: 1, delay: 1.8 }, { cx: 300, cy: 200, r: 7, ci: 0, delay: 0.5 },
+  { cx: 340, cy: 130, r: 5, ci: 5, delay: 1.2 }, { cx: 250, cy: 260, r: 6, ci: 2, delay: 0.9 },
+  { cx: 190, cy: 300, r: 4, ci: 3, delay: 1.5 }, { cx: 320, cy: 280, r: 5, ci: 1, delay: 0.7 },
+  { cx: 400, cy: 80, r: 6, ci: 0, delay: 1.0 }, { cx: 430, cy: 190, r: 5, ci: 3, delay: 0.4 },
+  { cx: 370, cy: 240, r: 4, ci: 4, delay: 1.4 }, { cx: 60, cy: 300, r: 5, ci: 4, delay: 0.6 },
+  { cx: 130, cy: 350, r: 6, ci: 0, delay: 1.7 }, { cx: 250, cy: 350, r: 4, ci: 5, delay: 0.2 },
+  { cx: 350, cy: 340, r: 5, ci: 2, delay: 1.1 }, { cx: 460, cy: 300, r: 4, ci: 1, delay: 0.9 },
+  { cx: 480, cy: 70, r: 5, ci: 2, delay: 0.3 }, { cx: 520, cy: 160, r: 7, ci: 5, delay: 1.5 },
+  { cx: 560, cy: 90, r: 4, ci: 4, delay: 0.8 }, { cx: 570, cy: 220, r: 6, ci: 1, delay: 1.2 },
+  { cx: 610, cy: 140, r: 4, ci: 0, delay: 0.5 }, { cx: 500, cy: 270, r: 5, ci: 3, delay: 1.7 },
+  { cx: 550, cy: 330, r: 6, ci: 2, delay: 0.6 }, { cx: 620, cy: 300, r: 4, ci: 5, delay: 1.0 },
+  { cx: 440, cy: 400, r: 5, ci: 4, delay: 0.4 }, { cx: 300, cy: 430, r: 4, ci: 1, delay: 1.3 },
+  { cx: 170, cy: 400, r: 5, ci: 0, delay: 0.9 }, { cx: 30, cy: 200, r: 4, ci: 2, delay: 1.6 },
+];
+const EDGES = [
+  [0,2],[0,3],[2,4],[2,5],[3,6],[3,7],[4,5],[5,8],[5,9],[6,9],[6,12],[7,12],
+  [8,10],[9,10],[9,11],[10,13],[11,12],[11,19],[9,14],[14,15],[15,16],[10,16],
+  [16,19],[19,20],[13,20],[18,17],[7,18],[12,19],[14,22],[22,23],[23,24],[15,23],
+  [24,25],[23,26],[25,26],[25,29],[16,26],[26,30],[20,27],[27,28],[27,30],[30,31],
+  [29,31],[31,32],[32,18],[7,33],[3,33],
+];
+
+class Component extends DCLogic {
+  state = { phase: 'idle', activeId: null, activity: [], counts: {}, briefing: true, briefingIndex: -1, activeTab: 'digest' };
+  timers = {};
+
+  componentDidMount() {
+    this.clockInterval = setInterval(() => this.forceUpdate(), 1000);
+    this.runBriefing();
+    this.speechEnabled = false;
+    this.speechBroken = false;
+    this._prevPhase = 'idle';
+    this._prevActiveId = null;
+    this.checkVoices();
+    if (window.speechSynthesis) {
+      window.speechSynthesis.onvoiceschanged = () => this.checkVoices();
+    }
+  }
+
+  checkVoices() {
+    try {
+      const voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+      this.speechEnabled = voices && voices.length > 0;
+    } catch (e) {
+      this.speechEnabled = false;
+    }
+  }
+
+  componentDidUpdate() {
+    const prevPhase = this._prevPhase, prevActiveId = this._prevActiveId;
+    if (this.state.phase === 'result' && (prevPhase !== 'result' || prevActiveId !== this.state.activeId)) {
+      this.speak(this.getResponseText(this.state.activeId));
+    }
+    if (prevPhase === 'result' && this.state.phase !== 'result') {
+      if (window.speechSynthesis) window.speechSynthesis.cancel();
+    }
+    this._prevPhase = this.state.phase;
+    this._prevActiveId = this.state.activeId;
+  }
+
+  getResponseText(id) {
+    const s = id === '__wrapup__' ? WRAPUP : BASE_SCENARIOS.find(x => x.id === id);
+    if (!s) return '';
+    const tone = this.props.personaTone || 'formal';
+    return s[tone] || s.formal;
+  }
+
+  speak(text) {
+    // Circuit breaker: one failed/unconfirmed attempt permanently disables further TTS
+    // this session, so a broken/sandboxed speechSynthesis can only ever log once, not per item.
+    if (!text || !window.speechSynthesis || !this.speechEnabled || this.speechBroken) return;
+    try {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.rate = 0.98;
+      u.pitch = 0.9;
+      let started = false;
+      u.onstart = () => { started = true; };
+      u.onerror = () => { this.speechBroken = true; };
+      u.onend = () => {};
+      const voices = window.speechSynthesis.getVoices();
+      const preferred = voices.find(v => /male|daniel|alex|fred/i.test(v.name)) || voices.find(v => v.lang && v.lang.startsWith('en'));
+      if (preferred) u.voice = preferred;
+      window.speechSynthesis.speak(u);
+      setTimeout(() => { if (!started) this.speechBroken = true; }, 600);
+    } catch (e) {
+      this.speechBroken = true;
+    }
+  }
+
+  runBriefing() {
+    const m = PACE_MULT[this.props.briefingPace] || 1;
+    const step = (i) => {
+      if (i >= BASE_SCENARIOS.length) {
+        this.setState(st => ({ ...st, briefingIndex: i, phase: 'listening', activeId: null }));
+        this.timers.bp = setTimeout(() => this.setState(st => ({ ...st, phase: 'processing' })), 1400 * m);
+        this.timers.br = setTimeout(() => this.setState(st => ({ ...st, phase: 'result', activeId: '__wrapup__' })), 2600 * m);
+        this.timers.bi = setTimeout(() => this.setState(st => ({ ...st, phase: 'idle', activeId: null, briefing: false })), 6600 * m);
+        return;
+      }
+      this.setState(st => ({ ...st, briefingIndex: i }));
+      this.trigger(BASE_SCENARIOS[i].id);
+      this.timers.step = setTimeout(() => step(i + 1), 7200 * m);
+    };
+    this.timers.start = setTimeout(() => step(0), 1200 * m);
+  }
+  componentWillUnmount() {
+    Object.values(this.timers).forEach(t => t && clearTimeout(t));
+    clearInterval(this.clockInterval);
+    if (window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.onvoiceschanged = null;
+    }
+  }
+
+  trigger(id) {
+    const m = PACE_MULT[this.props.briefingPace] || 1;
+    clearTimeout(this.timers.t1); clearTimeout(this.timers.t2);
+    this.setState(st => ({ ...st, phase: 'listening', activeId: id }));
+    this.timers.t1 = setTimeout(() => this.setState(st => ({ ...st, phase: 'processing', activeId: id })), 1500 * m);
+    this.timers.t2 = setTimeout(() => {
+      const s = BASE_SCENARIOS.find(x => x.id === id);
+      this.setState(st => ({
+        ...st, phase: 'result', activeId: id,
+        activity: [{ tag: s.tag, color: s.color }, ...st.activity].slice(0, 5),
+        counts: { ...st.counts, [id]: (st.counts[id] || 0) + 1 },
+      }));
+    }, 2800 * m);
+  }
+  reset() {
+    clearTimeout(this.timers.t1); clearTimeout(this.timers.t2);
+    this.setState(st => ({ ...st, phase: 'idle', activeId: null }));
+  }
+  quitBriefing() {
+    Object.values(this.timers).forEach(t => t && clearTimeout(t));
+    this.timers = {};
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    this.setState(st => ({ ...st, phase: 'idle', activeId: null, briefing: false }));
+  }
+  dismiss() {
+    // Always fully halt — cancels any in-flight briefing step or single trigger, no exceptions.
+    this.quitBriefing();
+  }
+  setTab(id) {
+    this.setState(st => ({ ...st, activeTab: id }));
+  }
+  random() {
+    const pool = BASE_SCENARIOS.filter(s => s.id !== this.state.activeId);
+    this.trigger(pool[Math.floor(Math.random() * pool.length)].id);
+  }
+  ringInfo(phase) {
+    if (phase === 'listening') return { label: 'LISTENING', color: 'oklch(0.72 0.15 200)' };
+    if (phase === 'processing') return { label: 'PROCESSING', color: 'oklch(0.75 0.15 70)' };
+    if (phase === 'result') return { label: 'SPEAKING', color: 'oklch(0.72 0.15 145)' };
+    return { label: 'STANDBY', color: 'oklch(0.6 0.015 260)' };
+  }
+
+  renderVals() {
+    const { phase, activeId, activity, counts, briefing, briefingIndex, activeTab } = this.state;
+    const findScenario = id => id === '__wrapup__' ? WRAPUP : BASE_SCENARIOS.find(s => s.id === id);
+    const ring = this.ringInfo(phase);
+    const tone = this.props.personaTone || 'formal';
+    const active = findScenario(activeId) || BASE_SCENARIOS[0];
+    const accentHex = this.props.accentTheme || '#5fd4e0';
+    const scenariosAll = BASE_SCENARIOS.map(s => ({ ...s, initial: s.tag.slice(0, 2).toUpperCase(), onClick: () => this.trigger(s.id) }));
+
+    return {
+      briefing,
+      briefDots: BASE_SCENARIOS.map((s, i) => ({ bg: i <= briefingIndex ? s.color : 'oklch(0.4 0.01 260)' })),
+      scenariosA: scenariosAll,
+      tabs: TABS.map(t => ({
+        ...t, active: t.id === activeTab, onClick: () => this.setTab(t.id),
+        activeBg: t.id === activeTab ? 'oklch(1 0 0 / 0.14)' : 'oklch(1 0 0 / 0.04)',
+        activeColor: t.id === activeTab ? 'oklch(0.95 0.005 260)' : 'oklch(0.6 0.02 260)',
+      })),
+      scenariosTab: scenariosAll.filter(s => s.category === activeTab),
+      aIdle: phase === 'idle',
+      aListening: phase === 'listening',
+      aProcessing: phase === 'processing',
+      aResult: phase === 'result',
+      aActive: active,
+      aActiveText: active[tone] || active.formal,
+      resetA: () => this.dismiss(),
+      randomA: () => this.random(),
+      accentCyan: accentHex !== '#f0a63c' && accentHex !== '#c084fc',
+      accentAmber: accentHex === '#f0a63c',
+      accentViolet: accentHex === '#c084fc',
+
+      graphNodes: NODES.map(n => ({
+        cx: n.cx, cy: n.cy, r: n.r, fill: CATEGORY_COLORS[n.ci],
+        anim: `float${n.ci % 3} ${5 + n.ci}s ease-in-out infinite`, animDelay: n.delay + 's',
+      })),
+      graphEdges: EDGES.map(([i, j]) => ({ x1: NODES[i].cx, y1: NODES[i].cy, x2: NODES[j].cx, y2: NODES[j].cy })),
+      ringLabel: ring.label,
+      ringColor: ring.color,
+      skillsA: BASE_SCENARIOS.filter(s => s.category === activeTab).map(s => ({ tag: s.tag, color: s.color, count: counts[s.id] || 0 })),
+      aBar0: phase === 'listening' ? 'waveBar 0.9s ease-in-out infinite' : 'none',
+      aBar1: phase === 'listening' ? 'waveBar 0.9s ease-in-out infinite 0.1s' : 'none',
+      aBar2: phase === 'listening' ? 'waveBar 0.9s ease-in-out infinite 0.2s' : 'none',
+      aBar3: phase === 'listening' ? 'waveBar 0.9s ease-in-out infinite 0.3s' : 'none',
+      aBar4: phase === 'listening' ? 'waveBar 0.9s ease-in-out infinite 0.4s' : 'none',
+    };
+  }
+}
+
+</script>
+</body>
+</html>
