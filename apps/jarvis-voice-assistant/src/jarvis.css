@@ -396,12 +396,7 @@ button { font-family: inherit; cursor: pointer; }
 .hex-icon:hover { transform: scale(1.18); }
 .hex-icon polygon { transition: fill 0.2s ease; }
 .hex-icon:hover polygon { fill: oklch(0.27 0.02 260); }
-.hex-icon .hex-label {
-  font-family: var(--font-display);
-  font-weight: 700;
-  pointer-events: none;
-  text-anchor: middle;
-}
+.hex-glyph { pointer-events: none; }
 .hex-icon .hex-count text {
   font-family: var(--font-body);
   font-weight: 700;

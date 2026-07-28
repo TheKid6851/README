@@ -1,4 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import {
+  TrendingUp, Quote as QuoteIcon, CloudSun, Newspaper, Landmark, Mail,
+  CalendarCheck, LayoutGrid, Dumbbell, Apple, Trophy, Flame,
+} from 'lucide-react'
 import { SCENARIOS, TABS } from '../data/scenarios'
 import { useSwipeDismiss } from '../hooks/useSwipeDismiss'
 import { useSceneInteraction } from '../hooks/useSceneInteraction'
@@ -11,8 +15,20 @@ const STATUS_BY_PHASE = {
   result: { word: 'SPEAKING', color: 'var(--status-speaking)' },
 }
 
-function initials(tag) {
-  return tag.replace(/[^a-zA-Z]/g, '').slice(0, 2).toUpperCase()
+// A symbol tied to what each skill actually is, not an abbreviation of it.
+const SCENARIO_ICON = {
+  markets: TrendingUp,
+  quote: QuoteIcon,
+  weather: CloudSun,
+  news: Newspaper,
+  financials: Landmark,
+  email: Mail,
+  calendar: CalendarCheck,
+  apps: LayoutGrid,
+  workouts: Dumbbell,
+  diet: Apple,
+  cfb: Trophy,
+  vending: Flame,
 }
 
 // Angle 0 = straight up, clockwise — standard clock-face convention.
@@ -45,13 +61,15 @@ function useOrbitalLayout() {
       return { ...s, angle, x, y }
     })
 
+    // Fixed radius bands (rather than fully random depth) so each
+    // category reads as an organized cluster of rings, not a scatter.
+    const BANDS = [11, 16, 21, 26]
     const particles = []
     let pid = 0
     hexes.forEach((h) => {
-      const count = 5 + Math.floor(Math.random() * 4)
-      for (let k = 0; k < count; k++) {
-        const angle = h.angle + (Math.random() - 0.5) * 26
-        const radius = 7 + Math.random() * 18
+      BANDS.forEach((baseRadius) => {
+        const angle = h.angle + (Math.random() - 0.5) * 16
+        const radius = baseRadius + (Math.random() - 0.5) * 2.5
         const { x, y } = polar(CENTER.x, CENTER.y, radius, angle)
         particles.push({
           id: pid,
@@ -64,7 +82,7 @@ function useOrbitalLayout() {
           delay: 0.2 + Math.random() * 1.6,
         })
         pid += 1
-      }
+      })
     })
 
     return { hexes, particles }
@@ -164,6 +182,7 @@ export default function DesktopView({ jarvis }) {
         {hexes.map((h) => {
           const dimmed = activeTab && h.tab !== activeTab
           const count = counts[h.id] || 0
+          const Icon = SCENARIO_ICON[h.id]
           return (
             <g
               key={h.id}
@@ -181,9 +200,11 @@ export default function DesktopView({ jarvis }) {
               }}
             >
               <polygon points={hexPoints(h.x, h.y, 4.4)} fill="oklch(0.2 0.02 260)" stroke={h.color} strokeWidth="0.45" />
-              <text className="hex-label" x={h.x} y={h.y + 1.1} fontSize="3.1" fill={h.color}>
-                {initials(h.tag)}
-              </text>
+              <Icon
+                className="hex-glyph"
+                x={h.x - 2.3} y={h.y - 2.3} width={4.6} height={4.6}
+                color={h.color} strokeWidth={2.2}
+              />
               {count > 0 && (
                 <g className="hex-count">
                   <circle cx={h.x + 3.4} cy={h.y - 3.4} r="1.7" fill={h.color} />
