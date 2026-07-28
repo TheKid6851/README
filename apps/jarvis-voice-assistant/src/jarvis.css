@@ -87,6 +87,10 @@ button { font-family: inherit; cursor: pointer; }
   0%, 100% { transform: translate(6%, 6%) scale(1); }
   50% { transform: translate(-6%, -4%) scale(1.05); }
 }
+@keyframes particleFade {
+  0% { opacity: 0.9; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(0.2); }
+}
 
 /* ---------- Orb ---------- */
 .orb {
@@ -99,6 +103,19 @@ button { font-family: inherit; cursor: pointer; }
 }
 .orb.processing { animation-duration: 0.8s; }
 .orb:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+.drag-trail-particle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 3;
+  animation: particleFade 0.7s ease-out forwards;
+  box-shadow: 0 0 10px 2px currentColor;
+}
 
 /* ==================================================================
    MOBILE VIEW
@@ -357,9 +374,10 @@ button { font-family: inherit; cursor: pointer; }
 
 .status-ring-wrap {
   position: absolute;
-  top: 46%;
+  /* Centered via top offset (not transform: translateY) so the drag
+     gesture's inline transform can fully own that property. */
+  top: calc(46% - 60px);
   right: 90px;
-  transform: translateY(-50%);
   z-index: 2;
   width: 120px;
   height: 120px;

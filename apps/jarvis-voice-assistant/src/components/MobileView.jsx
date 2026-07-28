@@ -1,4 +1,10 @@
-import { SCENARIOS, TABS, BRIEFING_ORDER } from '../data/scenarios'
+import { useRef } from 'react'
+import { SCENARIOS, TABS, BRIEFING_ORDER, CATEGORY_COLORS } from '../data/scenarios'
+import { useDraggableOrb } from '../hooks/useDraggableOrb'
+import { useSwipeDismiss } from '../hooks/useSwipeDismiss'
+import { useDragTrail } from '../hooks/useDragTrail'
+
+const TRAIL_COLORS = Object.values(CATEGORY_COLORS)
 
 function greetingCopy() {
   const hour = new Date().getHours()
@@ -19,8 +25,24 @@ export default function MobileView({ jarvis }) {
   const tabScenarios = SCENARIOS.filter((s) => s.tab === activeTab)
   const showOverlay = phase !== 'idle'
 
+  const containerRef = useRef(null)
+  const orbRef = useRef(null)
+  const { dragStyle, dragHandlers, didDragRef } = useDraggableOrb({
+    containerRef, elementRef: orbRef, disabled: showOverlay,
+  })
+  const { swipeStyle, swipeHandlers } = useSwipeDismiss(dismiss, phase === 'result')
+  const { particles, handlers: trailHandlers } = useDragTrail(containerRef, TRAIL_COLORS)
+
   return (
-    <div className="mobile-view">
+    <div className="mobile-view" ref={containerRef} {...trailHandlers}>
+      {particles.map((p) => (
+        <span
+          key={p.id}
+          className="drag-trail-particle"
+          style={{ left: p.x, top: p.y, color: p.color, background: p.color }}
+        />
+      ))}
+
       <div className="progress-dots" aria-hidden={!briefing}>
         {BRIEFING_ORDER.map((id, i) => {
           const scenario = SCENARIOS.find((s) => s.id === id)
@@ -38,9 +60,12 @@ export default function MobileView({ jarvis }) {
       {!showOverlay && (
         <>
           <button
+            ref={orbRef}
             className="orb mobile-orb"
-            onClick={startListening}
-            aria-label="Ask Jarvis"
+            style={dragStyle}
+            onClick={() => { if (!didDragRef.current) startListening() }}
+            aria-label="Ask Jarvis — tap, flick up, or drag to move"
+            {...dragHandlers}
           />
           <div className="greeting">
             <h1>{greeting.title}</h1>
@@ -92,7 +117,7 @@ export default function MobileView({ jarvis }) {
       )}
 
       {showOverlay && phase === 'result' && resultDisplay && (
-        <div className="mobile-overlay">
+        <div className="mobile-overlay" style={swipeStyle} {...swipeHandlers}>
           <div className="result-block" style={{ '--tag-color': resultDisplay.color }}>
             <div className="tag">{resultDisplay.tag}</div>
             <div className="response">{resultDisplay.text}</div>
