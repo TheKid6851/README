@@ -1,12 +1,26 @@
 // Cloudflare Worker: holds AI provider keys server-side and proxies
-// open-ended questions from the Jarvis app to them. Tries Gemini first
-// (free tier, with Google Search grounding for time-sensitive questions);
-// if Gemini errors or its free quota is exhausted, falls back to Groq
-// (also free tier) so the app keeps answering instead of going dark.
+// open-ended questions from the Jarvis app to them. Tries each configured
+// provider in order until one succeeds:
+//   1. Gemini      — free tier, with live Google Search grounding
+//   2. Groq        — free tier, fast, no live search
+//   3. Cerebras    — free tier, fast, no live search
+//   4. Mistral     — free tier, no live search
+//   5. OpenRouter  — free-tier (":free") models, no live search
+//   6. HuggingFace — free inference router, no live search
+// If a provider errors or its free quota is exhausted, the next one in
+// the chain is tried automatically, so one provider running dry doesn't
+// take the app down.
 //
-// Keys never reach the browser — set them with:
+// Keys never reach the browser — set only the ones you want with:
 //   wrangler secret put GEMINI_API_KEY
-//   wrangler secret put GROQ_API_KEY   (optional, enables the fallback)
+//   wrangler secret put GROQ_API_KEY
+//   wrangler secret put CEREBRAS_API_KEY
+//   wrangler secret put MISTRAL_API_KEY
+//   wrangler secret put OPENROUTER_API_KEY
+//   wrangler secret put HF_API_KEY
+// Any provider whose key isn't set is skipped. Add more the same way —
+// append an entry to PROVIDERS below for any other OpenAI-compatible
+// free-tier API.
 
 const SYSTEM_PROMPT = 'You are J.A.R.V.I.S., a concise voice assistant. '
   + 'Answer in a natural, spoken style: a few sentences unless the question '
@@ -60,7 +74,7 @@ async function callGemini(env, message, systemText) {
 
   if (!upstream.ok) {
     const detail = await upstream.text().catch(() => '')
-    throw new Error(`Gemini ${upstream.status}: ${detail.slice(0, 300)}`)
+    throw new Error(`${upstream.status}: ${detail.slice(0, 300)}`)
   }
 
   const data = await upstream.json()
@@ -69,21 +83,19 @@ async function callGemini(env, message, systemText) {
     .filter(Boolean)
     .join(' ')
     .trim()
-  if (!text) throw new Error('Gemini returned no text')
+  if (!text) throw new Error('returned no text')
   return text
 }
 
-// No live web access, but a solid free fallback so the app keeps working
-// when Gemini's free quota is exhausted or briefly down.
-async function callGroq(env, message, systemText) {
-  const model = env.GROQ_MODEL || 'llama-3.3-70b-versatile'
-  const url = 'https://api.groq.com/openai/v1/chat/completions'
-
+// Groq, Cerebras, and Mistral all speak the same OpenAI-compatible
+// chat-completions shape, so one helper covers all three. None of them
+// do live web search — they answer from what the model already knows.
+async function callOpenAICompatible(url, apiKey, model, message, systemText) {
   const upstream = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${env.GROQ_API_KEY}`,
+      Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
       model,
@@ -97,14 +109,73 @@ async function callGroq(env, message, systemText) {
 
   if (!upstream.ok) {
     const detail = await upstream.text().catch(() => '')
-    throw new Error(`Groq ${upstream.status}: ${detail.slice(0, 300)}`)
+    throw new Error(`${upstream.status}: ${detail.slice(0, 300)}`)
   }
 
   const data = await upstream.json()
   const text = data?.choices?.[0]?.message?.content?.trim()
-  if (!text) throw new Error('Groq returned no text')
+  if (!text) throw new Error('returned no text')
   return text
 }
+
+// Tried in this order. Each is skipped if its key isn't configured.
+const PROVIDERS = [
+  {
+    name: 'gemini',
+    envKey: 'GEMINI_API_KEY',
+    call: (env, message, systemText) => callGemini(env, message, systemText),
+  },
+  {
+    name: 'groq',
+    envKey: 'GROQ_API_KEY',
+    call: (env, message, systemText) => callOpenAICompatible(
+      'https://api.groq.com/openai/v1/chat/completions',
+      env.GROQ_API_KEY,
+      env.GROQ_MODEL || 'llama-3.3-70b-versatile',
+      message, systemText,
+    ),
+  },
+  {
+    name: 'cerebras',
+    envKey: 'CEREBRAS_API_KEY',
+    call: (env, message, systemText) => callOpenAICompatible(
+      'https://api.cerebras.ai/v1/chat/completions',
+      env.CEREBRAS_API_KEY,
+      env.CEREBRAS_MODEL || 'llama-3.3-70b',
+      message, systemText,
+    ),
+  },
+  {
+    name: 'mistral',
+    envKey: 'MISTRAL_API_KEY',
+    call: (env, message, systemText) => callOpenAICompatible(
+      'https://api.mistral.ai/v1/chat/completions',
+      env.MISTRAL_API_KEY,
+      env.MISTRAL_MODEL || 'mistral-small-latest',
+      message, systemText,
+    ),
+  },
+  {
+    name: 'openrouter',
+    envKey: 'OPENROUTER_API_KEY',
+    call: (env, message, systemText) => callOpenAICompatible(
+      'https://openrouter.ai/api/v1/chat/completions',
+      env.OPENROUTER_API_KEY,
+      env.OPENROUTER_MODEL || 'meta-llama/llama-3.3-70b-instruct:free',
+      message, systemText,
+    ),
+  },
+  {
+    name: 'huggingface',
+    envKey: 'HF_API_KEY',
+    call: (env, message, systemText) => callOpenAICompatible(
+      'https://router.huggingface.co/v1/chat/completions',
+      env.HF_API_KEY,
+      env.HF_MODEL || 'meta-llama/Llama-3.1-8B-Instruct',
+      message, systemText,
+    ),
+  },
+]
 
 export default {
   async fetch(request, env) {
@@ -114,8 +185,10 @@ export default {
     if (request.method !== 'POST') {
       return json(env, { error: 'Method not allowed' }, 405)
     }
-    if (!env.GEMINI_API_KEY && !env.GROQ_API_KEY) {
-      return json(env, { error: 'Server missing GEMINI_API_KEY / GROQ_API_KEY' }, 500)
+
+    const configured = PROVIDERS.filter((p) => env[p.envKey])
+    if (configured.length === 0) {
+      return json(env, { error: 'Server has no AI provider keys configured' }, 500)
     }
 
     let body
@@ -131,22 +204,12 @@ export default {
     const systemText = `${SYSTEM_PROMPT} ${PERSONA_HINTS[persona]}`
 
     const errors = []
-
-    if (env.GEMINI_API_KEY) {
+    for (const provider of configured) {
       try {
-        const text = await callGemini(env, message, systemText)
-        return json(env, { text, provider: 'gemini' })
+        const text = await provider.call(env, message, systemText)
+        return json(env, { text, provider: provider.name })
       } catch (err) {
-        errors.push(String(err?.message || err))
-      }
-    }
-
-    if (env.GROQ_API_KEY) {
-      try {
-        const text = await callGroq(env, message, systemText)
-        return json(env, { text, provider: 'groq' })
-      } catch (err) {
-        errors.push(String(err?.message || err))
+        errors.push(`${provider.name}: ${err?.message || err}`)
       }
     }
 
