@@ -18,7 +18,13 @@ const THEME_OPTIONS = [
   { id: 'violet', hex: '#c084fc' },
 ]
 
-export default function TweaksPanel({ persona, setPersona, pace, setPace, theme, setTheme }) {
+const VIEW_OPTIONS = [
+  { id: 'auto', label: 'Auto' },
+  { id: 'mobile', label: 'Mobile' },
+  { id: 'desktop', label: 'Desktop' },
+]
+
+export default function TweaksPanel({ persona, setPersona, pace, setPace, theme, setTheme, viewMode, setViewMode }) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -40,6 +46,21 @@ export default function TweaksPanel({ persona, setPersona, pace, setPace, theme,
 
       {open && (
         <div className="tweaks-panel">
+          <div className="tweaks-group">
+            <label className="group-label">View</label>
+            <div className="options">
+              {VIEW_OPTIONS.map((o) => (
+                <button
+                  key={o.id}
+                  className={o.id === viewMode ? 'active' : ''}
+                  onClick={() => setViewMode(o.id)}
+                >
+                  {o.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="tweaks-group">
             <label className="group-label">Briefing pace</label>
             <div className="options">

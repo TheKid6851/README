@@ -651,3 +651,11 @@ button { font-family: inherit; cursor: pointer; }
   .mobile-view { display: none; }
   .desktop-view { display: block; }
 }
+
+/* Manual override (Tweaks > View, or ?view=desktop|mobile) — for when the
+   container itself is narrower than the breakpoint regardless of the
+   viewer's actual screen size, e.g. an embedded preview panel. */
+.app-root.force-desktop .mobile-view { display: none !important; }
+.app-root.force-desktop .desktop-view { display: block !important; }
+.app-root.force-mobile .desktop-view { display: none !important; }
+.app-root.force-mobile .mobile-view { display: flex !important; }
