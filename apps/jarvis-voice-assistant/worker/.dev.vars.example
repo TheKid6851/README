@@ -1,1 +1,4 @@
 GEMINI_API_KEY=your-free-gemini-api-key-here
+# Optional fallback used automatically if Gemini errors or hits its free
+# quota. Leave unset to run with Gemini only.
+GROQ_API_KEY=your-free-groq-api-key-here
