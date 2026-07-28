@@ -11,6 +11,9 @@ export const CATEGORY_COLORS = {
   calendar: 'var(--cat-calendar)',
   workouts: 'var(--cat-workouts)',
   apps: 'var(--cat-apps)',
+  diet: 'var(--cat-diet)',
+  cfb: 'var(--cat-cfb)',
+  vending: 'var(--cat-vending)',
 }
 
 export const TABS = [
@@ -118,15 +121,54 @@ export const SCENARIOS = [
   },
   {
     id: 'workouts',
-    tag: 'Activities',
+    tag: 'Workouts',
     tab: 'activities',
     color: CATEGORY_COLORS.workouts,
     prompt: "What's my workout today?",
-    keywords: ['workout', 'workouts', 'gym', 'exercise', 'training', 'run', 'yoga', 'activity'],
+    keywords: ['workout', 'workouts', 'gym', 'exercise', 'training', 'run', 'yoga', 'routine'],
     responses: {
-      formal: "Today's session is scheduled as an upper-body strength routine, followed by twenty minutes of light cardio.",
-      casual: "Upper body day, then a light 20-minute cardio finisher.",
-      minimal: "Upper body + 20 min cardio.",
+      formal: "Today's session is scheduled as an upper-body strength routine, followed by twenty minutes of light cardio. Illustrative placeholder — send your real routine and I'll swap this in.",
+      casual: "Upper body day, then a light 20-minute cardio finisher. Still a placeholder — send your actual routine whenever you're ready.",
+      minimal: "Upper body + 20 min cardio. (Placeholder — awaiting your real routine.)",
+    },
+  },
+  {
+    id: 'diet',
+    tag: 'Diet Plan',
+    tab: 'activities',
+    color: CATEGORY_COLORS.diet,
+    prompt: "What's my diet plan look like today?",
+    keywords: ['diet', 'meal', 'meals', 'macros', 'nutrition', 'calories', 'food plan'],
+    responses: {
+      formal: "Today's illustrative plan: ~2,400 calories, roughly 180g protein / 250g carbs / 70g fat across four meals. This is placeholder structure — send your real diet plan and I'll use your actual targets and meals.",
+      casual: "Placeholder day: about 2,400 calories, 180g protein, spread over four meals. Send me your real plan whenever and I'll swap this out for the real thing.",
+      minimal: "~2,400 kcal / 180g protein (placeholder — awaiting your real plan).",
+    },
+  },
+  {
+    id: 'cfb',
+    tag: 'CFB',
+    tab: 'activities',
+    color: CATEGORY_COLORS.cfb,
+    prompt: "How do I beat Cover 3, and how do I stop shotgun spread?",
+    keywords: ['cfb', 'college football', 'coverage', 'coverages', 'formation', 'formations', 'cover 3', 'blitz', 'zone defense', 'route concept'],
+    responses: {
+      formal: "On offense against Cover 3: attack the flat-to-corner seam with a flood concept, or hit a skinny post up the middle — the single-high safety can't get there in time. On defense against shotgun spread: generate pressure with your standard four-man rush so you stay sound in coverage, and keep a spy or nickel defender on the mesh point to take away RPOs.",
+      casual: "Cover 3? Flood the strong side — flat plus a corner route stretches that one deep-third defender thin. Or hit a skinny post right up the middle where the safety can't get there. Against shotgun spread, get home with just a four-man rush so you're not outnumbered elsewhere, and spy the mesh point so RPOs don't gash you.",
+      minimal: "Cover 3: flood routes or skinny post. Spread: 4-man rush + mesh spy.",
+    },
+  },
+  {
+    id: 'vending',
+    tag: 'Red Hot Vending LLC',
+    tab: 'activities',
+    color: CATEGORY_COLORS.vending,
+    prompt: "How's Red Hot Vending looking?",
+    keywords: ['vending', 'red hot vending', 'machine', 'machines', 'restock'],
+    responses: {
+      formal: "Red Hot Vending: 14 of 15 machines reporting online — Machine #7 at the Main St location has been offline since yesterday and needs a service call. Daily sales are trending at $312, up 8% week over week. Two machines are under 20% inventory and due for a restock this week. Illustrative snapshot until a real ops connection is linked.",
+      casual: "Vending's mostly good — 14 of 15 machines online, just #7 on Main St's been down since yesterday, might want to get that looked at. Sales are up 8% from last week, averaging $312 a day. A couple machines are getting low on stock, worth restocking soon. Still placeholder numbers for now.",
+      minimal: "14/15 machines online. #7 (Main St) down. Sales $312/day, +8% WoW. 2 machines low stock.",
     },
   },
   {

@@ -15,6 +15,9 @@
   --cat-calendar: oklch(0.72 0.15 230);
   --cat-workouts: oklch(0.72 0.15 170);
   --cat-apps: oklch(0.72 0.15 255);
+  --cat-diet: oklch(0.75 0.15 105);
+  --cat-cfb: oklch(0.75 0.16 50);
+  --cat-vending: oklch(0.65 0.19 18);
 
   --status-standby: oklch(0.6 0.015 260);
   --status-listening: oklch(0.72 0.15 200);
