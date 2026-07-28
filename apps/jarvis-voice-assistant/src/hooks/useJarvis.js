@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { SCENARIOS, SCENARIO_MAP, BRIEFING_ORDER, WRAPUP } from '../data/scenarios'
+import { AI_ENABLED, askAI } from '../lib/ai'
 
 // Tweaks: Briefing Pace — multiplier applied to every phase-transition delay.
 const PACE_MULTIPLIER = { quick: 0.8, normal: 1.5, slow: 2.4 }
@@ -219,16 +220,37 @@ export function useJarvis() {
   }, [pace, speak, wait])
 
   // Shared by voice and typed input: match what was said/typed against a
-  // skill's keywords, or fall back to a Jarvis-voiced "don't know that one".
-  const respondTo = useCallback((said, runId, source) => {
+  // skill's keywords first (fast, offline, curated). Anything else goes to
+  // the real AI backend when one's configured (VITE_AI_ENDPOINT) — open-
+  // ended, live-web-aware answers, same as asking Claude directly. With no
+  // backend configured the app stays fully offline and just says so.
+  const respondTo = useCallback(async (said, runId, source) => {
     const scenario = matchScenario(said)
     if (scenario) {
       presentVoiceResult(runId, { tag: scenario.tag, color: scenario.color, text: scenario.responses[persona] }, scenario.id)
-    } else {
+      return
+    }
+
+    if (!AI_ENABLED) {
       const lead = source === 'typed' ? `You asked: "${said}"` : `I heard "${said}"`
       presentVoiceResult(runId, { ...JARVIS_TAG, text: `${lead} — I don't have a skill for that yet.` }, null)
+      return
     }
-  }, [persona, presentVoiceResult])
+
+    if (cancelledRef.current || runId !== runIdRef.current) return
+    setPhase('processing')
+    setActiveId(null)
+    let text
+    try {
+      text = await askAI(said, persona)
+    } catch {
+      text = "I couldn't reach my AI backend just now — try again in a moment."
+    }
+    if (cancelledRef.current || runId !== runIdRef.current) return
+    setPhase('result')
+    setResultDisplay({ ...JARVIS_TAG, text })
+    await speak(text, runId)
+  }, [persona, presentVoiceResult, speak])
 
   // A typed command skips straight to "thinking about it" — there's nothing
   // to listen for.

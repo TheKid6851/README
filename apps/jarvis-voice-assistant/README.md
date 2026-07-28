@@ -5,14 +5,20 @@ A React recreation of the `design_handoff_jarvis_voice_assistant` concept: a dar
 Quote, Weather, News, Financials, Email, Calendar & Tasks, Workouts) and
 supports on-demand voice-style commands via tap.
 
-This is a **working front-end prototype**, not a production build: all
-responses are placeholder copy (see `src/data/scenarios.js`), and the only
-"voice" is the browser's built-in `speechSynthesis` used to preview the
-read-aloud experience. There are no real backend integrations (banking,
-calendar, email, etc.) — see the original handoff's `README.md` in the repo
-root's `design_handoff_jarvis_voice_assistant/` folder for what a real build
-would need (Plaid, Google/Microsoft Graph, a weather/news API, real TTS, and
-native app shells with system permissions).
+This is a **working front-end prototype**, not a production build: the 12
+built-in scenarios (see `src/data/scenarios.js`) are placeholder copy, and
+there are no real backend integrations (banking, calendar, email, etc.) —
+see the original handoff's `README.md` in the repo root's
+`design_handoff_jarvis_voice_assistant/` folder for what a real build would
+need (Plaid, Google/Microsoft Graph, a weather/news API, native app shells
+with system permissions). Speech input/output is real: actual browser
+speech recognition (`SpeechRecognition`) and TTS (`speechSynthesis`).
+
+**Open-ended questions** (anything that doesn't match a built-in scenario)
+can be answered by a real AI model instead of a canned "I don't have that
+skill" message — see `worker/README.md` to deploy the free Cloudflare
+Worker + Gemini backend and set `VITE_AI_ENDPOINT`. Without that set up,
+the app runs fully offline on the 12 built-in scenarios only.
 
 ## Layout
 
