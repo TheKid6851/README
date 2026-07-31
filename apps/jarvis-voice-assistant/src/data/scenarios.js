@@ -16,6 +16,92 @@ export const CATEGORY_COLORS = {
   vending: 'var(--cat-vending)',
 }
 
+// Situational CFB 27 cheat sheet — sourced from pro/competitive players and
+// creators (X, YouTube, Madden Prodigy, MMOexp, EA's CFB27 wiki, CFB.FAN,
+// Civil.gg) as of July 2026. Kept deliberately terse: 1-2 lines, no padding
+// — this is meant to be queried mid-game, not read like an article. Game
+// gets patched — if something stops working, it may have been tuned since.
+export const CFB_TOPICS = [
+  {
+    id: 'stunts',
+    keywords: ['stunt', 'stunts', 'tex', 'el paso', 'pirate', 'tempe', 'exit', 'twist', 'pass rush'],
+    formal: "Tex (DE loops inside) is the all-around best pass-rush stunt — run it from Nickel 2-4 Single Mug. El Paso (DTs loop outside) counters once they slide protection toward your Tex. Pirate is a good change-up once those two get picked up. Mix them — don't spam one.",
+    casual: "Tex — DE loops inside, all-around best, run from Nickel 2-4 Single Mug. El Paso counters if they start sliding protection your way. Pirate's a solid change-up once they've seen Tex/El Paso. Don't just spam one.",
+    minimal: "Tex = best all-around. El Paso counters slide protection. Pirate as a change-up.",
+  },
+  {
+    id: 'run-defense',
+    keywords: ['stop the run', 'run defense', 'run d', 'stopping the run', 'inside zone', 'gap integrity', 'gashed'],
+    formal: "Set Gap Integrity to Conservative and trust your fit — don't crash down early on inside zone. If they're gashing you inside, shift a linebacker up a step. Cover 4 is the strongest shell against run-heavy opponents since the safeties become primary run defenders.",
+    casual: "Gap Integrity: Conservative, trust your fit, don't jump inside zone early. Getting gashed inside? Shift a backer up a step. Cover 4's your best shell vs. run-heavy teams.",
+    minimal: "Gap Integrity: Conservative. Trust the fit. Cover 4 vs. run-heavy teams.",
+  },
+  {
+    id: 'power-i',
+    keywords: ['power i', 'power i hulk', 'hulk', 'heavy run', 'heavy formation'],
+    formal: "Against Power I Hulk: go ultra-aggressive, back the play-side linebacker up a step, hard flat and a five-yard curl-flat to the play side, and send a defensive-end blitz to disrupt the lead blocker. Nickel Wide, Cover 4 Quarters with an El Paso stunt and a strongside corner blitz is also a proven answer.",
+    casual: "Power I Hulk: ultra-aggressive, back the play-side LB up a step, hard flat + 5-yd curl-flat to that side, DE blitz to blow up the lead blocker. Nickel Wide Cover 4 Quarters + El Paso + strongside CB blitz also works well.",
+    minimal: "Ultra-aggressive, back LB up a step, DE blitz the lead blocker. Or Nickel Wide Cover 4 Quarters + El Paso + CB blitz.",
+  },
+  {
+    id: 'base-defense',
+    keywords: ['base defense', 'coverage shell', 'disguise', 'single mug', 'go-to defense', 'best defense'],
+    formal: "Single Mug / 4-2-5 Man Pressure is the most underrated base defense right now — frequent stunts, real five-man pressure, and it carries Cover 6, Cover 9, Cover 4 Quarters, and a built-in Cover 3 Cloud. Use the right stick pre-snap to fake the shell.",
+    casual: "Single Mug / 4-2-5 Man Pressure is underrated right now — good stunts, real pressure, has Cover 6/9/4 Quarters plus a built-in Cover 3 Cloud. Flash the shell pre-snap with the right stick.",
+    minimal: "Single Mug / 4-2-5 Man Pressure. Disguise with right stick pre-snap.",
+  },
+  {
+    id: 'trips',
+    keywords: ['trips', 'bunch', 'stack formation', 'triple stack'],
+    formal: "Against trips, use the built-in checks rather than freelancing: Box (default — each defender owns a zone around the bunch), Bingo (corner locks man on #1 if he releases outside), Triangle (3-over-2 shell with a safety bracket on the deep threat), or Stubbie (true man on #1). If they add a tight end to the trips side, run Cover 4 Palms with a Texas or El Paso stunt.",
+    casual: "Vs. trips, use the built-in checks — Box (default zone-per-guy), Bingo (corner locks #1 outside), Triangle (3-over-2 + safety bracket), or Stubbie (true man on #1). Trips with a TE attached? Cover 4 Palms plus a Tex or El Paso stunt.",
+    minimal: "Box (default), Bingo, Triangle, or Stubbie. Trips+TE: Cover 4 Palms + Tex/El Paso.",
+  },
+  {
+    id: 'offense-coverage-beaters',
+    keywords: [
+      'cover 3', 'cover 2', 'cover 4', 'quarters', 'man coverage', 'press', 'cover 0',
+      'beat cover', 'beat man', 'beat zone',
+    ],
+    formal: "Cover 3: read the flat defender — if he drops under, throw short; if he attacks the flat, throw behind him; if he widens, the seam or an inside crosser is open. Cover 4 / Quarters: attack underneath first — flats, drags, curls — and only push it vertical once a safety or corner commits. Cover 2: the window is behind the corner and in front of the safety — a corner route or deep out. Man or press coverage: speed outs win fast, and a tight end slant or drag is hard to press. Have a fast answer ready for Cover 0.",
+    casual: "Cover 3: watch the flat defender — drops under, throw short; attacks the flat, throw behind him; widens, hit the seam. Cover 4/Quarters: underneath first, go vertical once a safety commits. Cover 2: throw behind the corner, in front of the safety. Man/press: speed outs win fast, TE slants are hard to press. Have something ready for Cover 0.",
+    minimal: "Cover 3: read the flat defender. Cover 4: underneath first. Cover 2: window behind CB, in front of S. Man: speed outs, TE slants.",
+  },
+  {
+    id: 'rpo',
+    keywords: ['rpo', 'rpos', 'read option', 'peek read', 'alert read'],
+    formal: "Know your RPO type — Read, Peek, or Alert — and identify the conflict defender before the snap. Use the Untarget Menu to protect that read, and don't abandon the run too early.",
+    casual: "Know which RPO type you're running — Read, Peek, Alert — and ID the conflict defender pre-snap. Untarget Menu protects that read. Don't bail on the run too fast.",
+    minimal: "ID the RPO type and conflict defender pre-snap. Don't abandon the run early.",
+  },
+  {
+    id: 'protection',
+    keywords: ['stunt protection', 'pass protection', 'max protect', 'pocket', 'blocking'],
+    formal: "Facing a four-man stunt, Max Protect gives full protection but only three routes out. Use the pre-snap Untarget Menu to redirect a blocker onto the free rusher, and step up into the pocket rather than backpedaling.",
+    casual: "Vs. a 4-man stunt, Max Protect = full protection but only 3 routes out. Untarget Menu redirects a blocker to the free rusher. Step up in the pocket, don't backpedal.",
+    minimal: "Max Protect vs. 4-man stunts. Untarget Menu for the free rusher. Step up, don't backpedal.",
+  },
+  {
+    id: 'settings',
+    keywords: ['competitive settings', 'settings', 'pass lead', 'kick control', 'passing settings'],
+    formal: "Recommended competitive settings: Passing on Placement & Accuracy, Pass Lead Increase set to Small, Man Combo and Point Combo set to Lock, Match Coverage on Zone It or Default, and Kick Control set to Tap and Hold.",
+    casual: "Settings: Placement & Accuracy passing, Pass Lead Increase on Small, Man/Point Combo locked, Match Coverage Zone It or Default, Kick Control Tap and Hold.",
+    minimal: "Placement & Accuracy. Pass Lead: Small. Combo: Lock. Kick: Tap and Hold.",
+  },
+  {
+    id: 'playbooks',
+    keywords: ['playbook', 'playbooks', 'best playbook', 'money play', 'money plays'],
+    formal: "Strong playbooks right now include Ohio State, Virginia, Indiana, California, UL Monroe, and Washington State. Reliable money plays: play-action Flood, play-action vertical-and-comeback, and Dagger.",
+    casual: "Good playbooks right now: Ohio State, Virginia, Indiana, California, UL Monroe, Washington State. Money plays: play-action Flood, play-action vert+comeback, Dagger.",
+    minimal: "Playbooks: Ohio St, Virginia, Indiana, Cal, UL Monroe, Wash St. Money plays: PA Flood, PA vert+comeback, Dagger.",
+  },
+]
+
+export function matchCfbTopic(said) {
+  const lower = said.toLowerCase()
+  return CFB_TOPICS.find((t) => t.keywords.some((k) => lower.includes(k)))
+}
+
 export const TABS = [
   { id: 'digest', label: 'Digest' },
   { id: 'productivity', label: 'Productivity' },
@@ -125,7 +211,7 @@ export const SCENARIOS = [
     tab: 'activities',
     color: CATEGORY_COLORS.workouts,
     prompt: "What's my workout today?",
-    keywords: ['workout', 'workouts', 'gym', 'exercise', 'training', 'run', 'yoga', 'routine'],
+    keywords: ['workout', 'workouts', 'gym', 'exercise', 'training', 'go for a run', 'jog', 'yoga', 'routine'],
     responses: {
       formal: "Today's session is scheduled as an upper-body strength routine, followed by twenty minutes of light cardio. Illustrative placeholder — send your real routine and I'll swap this in.",
       casual: "Upper body day, then a light 20-minute cardio finisher. Still a placeholder — send your actual routine whenever you're ready.",
@@ -150,12 +236,18 @@ export const SCENARIOS = [
     tag: 'CFB',
     tab: 'activities',
     color: CATEGORY_COLORS.cfb,
-    prompt: "How do I beat Cover 3, and how do I stop shotgun spread?",
-    keywords: ['cfb', 'college football', 'coverage', 'coverages', 'formation', 'formations', 'cover 3', 'blitz', 'zone defense', 'route concept'],
+    prompt: "How do I stop this stunt, and what's the best defense vs. trips?",
+    // Broad gate keywords, plus every trigger word from CFB_TOPICS so any
+    // situational question lands here first — respondTo() then routes to
+    // the specific topic below via matchCfbTopic().
+    keywords: [
+      'cfb', 'cfb 27', 'cfb27', 'college football',
+      ...CFB_TOPICS.flatMap((t) => t.keywords),
+    ],
     responses: {
-      formal: "On offense against Cover 3: attack the flat-to-corner seam with a flood concept, or hit a skinny post up the middle — the single-high safety can't get there in time. On defense against shotgun spread: generate pressure with your standard four-man rush so you stay sound in coverage, and keep a spy or nickel defender on the mesh point to take away RPOs.",
-      casual: "Cover 3? Flood the strong side — flat plus a corner route stretches that one deep-third defender thin. Or hit a skinny post right up the middle where the safety can't get there. Against shotgun spread, get home with just a four-man rush so you're not outnumbered elsewhere, and spy the mesh point so RPOs don't gash you.",
-      minimal: "Cover 3: flood routes or skinny post. Spread: 4-man rush + mesh spy.",
+      formal: "Ask me something specific, sir — stunts, run defense, trips, coverage beaters, RPOs, protection, base defense, playbooks, or competitive settings.",
+      casual: "Ask me something specific — stunts, run D, trips, beating a coverage, RPOs, protection, base defense, playbooks, or settings.",
+      minimal: "Ask about: stunts, run D, trips, coverages, RPOs, protection, playbooks, settings.",
     },
   },
   {

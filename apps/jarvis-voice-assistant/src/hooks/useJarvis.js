@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { SCENARIOS, SCENARIO_MAP, BRIEFING_ORDER, WRAPUP } from '../data/scenarios'
+import { SCENARIOS, SCENARIO_MAP, BRIEFING_ORDER, WRAPUP, matchCfbTopic } from '../data/scenarios'
 import { AI_ENABLED, askAI } from '../lib/ai'
 
 // Tweaks: Briefing Pace — multiplier applied to every phase-transition delay.
@@ -227,7 +227,12 @@ export function useJarvis() {
   const respondTo = useCallback(async (said, runId, source) => {
     const scenario = matchScenario(said)
     if (scenario) {
-      presentVoiceResult(runId, { tag: scenario.tag, color: scenario.color, text: scenario.responses[persona] }, scenario.id)
+      // CFB is one hex but many situational answers — route to the
+      // specific cheat-sheet entry the question actually matches, falling
+      // back to the general "ask me about X" menu otherwise.
+      const cfbTopic = scenario.id === 'cfb' ? matchCfbTopic(said) : null
+      const text = cfbTopic ? cfbTopic[persona] : scenario.responses[persona]
+      presentVoiceResult(runId, { tag: scenario.tag, color: scenario.color, text }, scenario.id)
       return
     }
 
